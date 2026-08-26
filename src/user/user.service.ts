@@ -60,7 +60,6 @@ export class UserService {
     const merged = this.repository.merge(existingUser, body);
 
     await this.repository.save(merged);
-    return true;
   }
 
   /* 비밀번호 관련 유틸함수 */

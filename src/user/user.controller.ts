@@ -24,8 +24,7 @@ export class UserController {
   @ApiOperation({ summary: '사용자 생성 (회원가입)' })
   @ApiResponse({
     status: 201,
-    description: '성공',
-    schema: { type: 'string' },
+    description: '성공 시 사용자 아이디 반환',
   })
   @ApiResponse({
     status: 409,
@@ -56,6 +55,11 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '성공',
+    type: UserDto,
+  })
+  @ApiResponse({
+    status: 404,
+    description: '사용자를 찾을 수 없음',
   })
   @Get(':id')
   findOne(@Param('id') id: string): Promise<UserDto> {
@@ -66,17 +70,13 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '성공',
-    schema: { type: 'boolean' },
   })
   @ApiResponse({
     status: 404,
     description: '사용자를 찾을 수 없음',
   })
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<boolean> {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 }
