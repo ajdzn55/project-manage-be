@@ -21,8 +21,8 @@ export class User {
   password: string;
 
   @CreateDateColumn({ type: 'timestamp', comment: '생성일시' })
-  createdAt: Date;
+  created_at: Date;
 
   @UpdateDateColumn({ type: 'timestamp', comment: '수정일시' })
-  updatedAt: Date;
+  updated_at: Date;
 }

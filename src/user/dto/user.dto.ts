@@ -2,7 +2,7 @@ import { Expose } from 'class-transformer';
 
 export class UserDto {
   /**
-   * id
+   * 사용자 아이디
    */
   @Expose()
   id: string;
