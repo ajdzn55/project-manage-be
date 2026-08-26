@@ -9,8 +9,8 @@ async function bootstrap() {
 
   /* Swagger 문서 구성 */
   const config = new DocumentBuilder()
-    .setTitle('제목제목')
-    .setDescription('설명설명이')
+    .setTitle('Project Manage Servie API')
+    .setDescription('프로젝트 관리 서비스 REST API 문서')
     .setVersion('1.0')
     // .addBearerAuth()
     .build();
