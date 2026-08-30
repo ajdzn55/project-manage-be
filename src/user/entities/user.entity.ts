@@ -1,11 +1,16 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
+  Index,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+@Index('app_user_email_key', ['email'], {
+  unique: true,
+})
 @Entity({ name: 'app_user', comment: '사용자 정보' })
 export class User {
   @PrimaryColumn('varchar', { length: 30, comment: '로그인 아이디' })
@@ -20,9 +25,24 @@ export class User {
   @Column('varchar', { length: 100, comment: '비밀번호', select: false })
   password: string;
 
-  @CreateDateColumn({ type: 'timestamp', comment: '생성일시' })
-  created_at: Date;
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp',
+    comment: '생성일시',
+  })
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', comment: '수정일시' })
-  updated_at: Date;
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamp',
+    comment: '수정일시',
+  })
+  updatedAt: Date;
+
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp',
+    comment: '삭제일시',
+  })
+  deletedAt: Date;
 }
