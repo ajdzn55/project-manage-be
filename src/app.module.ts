@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from './config/data-source';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AppDataSource } from './config/data-source';
     }),
     TypeOrmModule.forRoot(AppDataSource.options),
     UserModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [AppService],
