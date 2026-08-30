@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   PrimaryColumn,
@@ -37,4 +38,11 @@ export class User {
     comment: '수정일시',
   })
   updatedAt: Date;
+
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp',
+    comment: '삭제일시',
+  })
+  deletedAt: Date;
 }

@@ -1,31 +1,8 @@
 import { Expose } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
+import { UserDto } from '../../user/dto/user.dto';
 
-export class SignUpDto {
-  /**
-   * id
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsString()
-  id: string;
-
-  /**
-   * 이름
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  /**
-   * 이메일
-   */
-  @Expose()
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
+export class SignUpDto extends UserDto {
   /**
    * 비밀번호
    */

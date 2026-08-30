@@ -9,6 +9,7 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserSearchQueryDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -25,13 +26,18 @@ export class UserService {
     }
 
     const hashed = await this.hashPassword(signUpDto.password);
-    await this.repository.save({ ...signUpDto, password: hashed });
+    const user = this.repository.create({ ...signUpDto, password: hashed });
+
+    await this.repository.save(user);
 
     return signUpDto.id;
   }
 
-  findAll(): Promise<User[]> {
-    return this.repository.find({ order: { id: 'ASC' } });
+  findAll(params: UserSearchQueryDto): Promise<User[]> {
+    return this.repository.find({
+      withDeleted: params.withDeleted,
+      order: { id: 'ASC' },
+    });
   }
 
   async findOne(id: string) {
@@ -60,6 +66,14 @@ export class UserService {
     const merged = this.repository.merge(existingUser, body);
 
     await this.repository.save(merged);
+  }
+
+  async remove(id: string) {
+    const result = await this.repository.softDelete(id);
+
+    if (!result.affected) {
+      throw new NotFoundException('존재하지 않는 사용자 입니다.');
+    }
   }
 
   /* 비밀번호 관련 유틸함수 */

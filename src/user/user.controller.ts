@@ -2,18 +2,26 @@ import {
   Body,
   ClassSerializerInterceptor,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Query,
   SerializeOptions,
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
-import { UserDto } from './dto/user.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UserDto, UserSearchQueryDto } from './dto/user.dto';
+import {
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('user')
@@ -36,8 +44,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '사용자 목록 조회' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: '성공',
     type: UserDto,
     isArray: true,
@@ -47,18 +54,16 @@ export class UserController {
     excludeExtraneousValues: true,
   })
   @Get()
-  findAll(): Promise<UserDto[]> {
-    return this.userService.findAll();
+  findAll(@Query() query: UserSearchQueryDto): Promise<UserDto[]> {
+    return this.userService.findAll(query);
   }
 
   @ApiOperation({ summary: '사용자 조회' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: '성공',
     type: UserDto,
   })
-  @ApiResponse({
-    status: 404,
+  @ApiNotFoundResponse({
     description: '사용자를 찾을 수 없음',
   })
   @Get(':id')
@@ -67,16 +72,23 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '사용자 정보 수정' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: '성공',
   })
-  @ApiResponse({
-    status: 404,
+  @ApiNotFoundResponse({
     description: '사용자를 찾을 수 없음',
   })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
+  }
+
+  @ApiOperation({ summary: '사용자 삭제 (미사용)' })
+  @ApiOkResponse({
+    description: '성공',
+  })
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.userService.remove(id);
   }
 }
