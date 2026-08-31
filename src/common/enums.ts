@@ -19,3 +19,27 @@ export const memberRoleDesc = {
   [MemberRole.Owner]: '관리자',
   [MemberRole.Member]: '참여자',
 };
+
+export enum TaskStatus {
+  Todo = 'TODO',
+  InProgress = 'IN_PROGRESS',
+  Done = 'DONE',
+}
+
+export const taskStatusDesc = {
+  [TaskStatus.Todo]: '대기',
+  [TaskStatus.InProgress]: '진행',
+  [TaskStatus.Done]: '완료',
+};
+
+export enum TaskPriority {
+  Low = 'LOW',
+  Medium = 'MEDIUM',
+  High = 'HIGH',
+}
+
+export const taskPriorityDesc = {
+  [TaskPriority.Low]: '낮음',
+  [TaskPriority.Medium]: '중간',
+  [TaskPriority.High]: '높음',
+};
