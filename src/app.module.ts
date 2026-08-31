@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from './config/data-source';
 import { ProjectModule } from './project/project.module';
+import { ProjectMemberModule } from './project-member/project-member.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ProjectModule } from './project/project.module';
     TypeOrmModule.forRoot(AppDataSource.options),
     UserModule,
     ProjectModule,
+    ProjectMemberModule,
   ],
   controllers: [AppController],
   providers: [AppService],
