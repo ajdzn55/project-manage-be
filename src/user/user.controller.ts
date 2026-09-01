@@ -16,6 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { UserDto, UserSearchQueryDto } from './dto/user.dto';
 import {
+  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -24,14 +25,14 @@ import {
 } from '@nestjs/swagger';
 
 @UseInterceptors(ClassSerializerInterceptor)
-@ApiTags('user')
+@ApiTags('사용자')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: '사용자 생성 (회원가입)' })
-  @ApiResponse({
-    status: 201,
+  @ApiCreatedResponse({
+    type: String,
     description: '성공 시 사용자 아이디 반환',
   })
   @ApiResponse({
@@ -91,4 +92,6 @@ export class UserController {
   delete(@Param('id') id: string) {
     return this.userService.remove(id);
   }
+
+  // TODO: 사용자 삭제 취소
 }

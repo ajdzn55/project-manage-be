@@ -14,20 +14,22 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import {
+  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { ProjectDto, ProjectSimpleDto } from './dto/project.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
+@ApiTags('프로젝트')
 @Controller('project')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @ApiOperation({ summary: '프로젝트 생성' })
-  @ApiResponse({ status: 201, description: '성공 시 프로젝트 id 반환' })
+  @ApiCreatedResponse({ type: String, description: '성공 시 프로젝트 id 반환' })
   @Post()
   create(@Body() createProjectDto: CreateProjectDto) {
     // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기

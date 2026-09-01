@@ -11,18 +11,20 @@ import { ProjectMemberService } from './project-member.service';
 import { CreateProjectMemberDto } from './dto/create-project-member.dto';
 import { ProjectMemberDto } from './dto/project-member.dto';
 import {
+  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 
+@ApiTags('프로젝트 멤버')
 @Controller('project/:projectId/members')
 export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
   @ApiOperation({ summary: '프로젝트 멤버 추가' })
-  @ApiResponse({ status: 201, description: '성공' })
+  @ApiCreatedResponse({ type: String, description: '성공' })
   @Post()
   create(
     @Param('projectId') projectId: string,
