@@ -11,6 +11,7 @@ import { ProjectMemberService } from './project-member.service';
 import { CreateProjectMemberDto } from './dto/create-project-member.dto';
 import { ProjectMemberDto } from './dto/project-member.dto';
 import {
+  ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -25,6 +26,9 @@ export class ProjectMemberController {
 
   @ApiOperation({ summary: '프로젝트 멤버 추가' })
   @ApiCreatedResponse({ type: String, description: '성공' })
+  @ApiBody({
+    type: [CreateProjectMemberDto],
+  })
   @Post()
   create(
     @Param('projectId') projectId: string,
