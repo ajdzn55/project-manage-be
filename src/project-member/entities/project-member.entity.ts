@@ -30,7 +30,7 @@ export class ProjectMember {
   })
   userId: string;
 
-  @ManyToOne(() => User, { nullable: false })
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: false })
   @JoinColumn({
     name: 'user_id',
     referencedColumnName: 'id',

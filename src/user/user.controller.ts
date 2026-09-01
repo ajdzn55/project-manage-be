@@ -65,7 +65,7 @@ export class UserController {
     type: UserDto,
   })
   @ApiNotFoundResponse({
-    description: '사용자를 찾을 수 없음',
+    description: '존재하지 않는 사용자',
   })
   @Get(':id')
   findOne(@Param('id') id: string): Promise<UserDto> {
@@ -77,7 +77,7 @@ export class UserController {
     description: '성공',
   })
   @ApiNotFoundResponse({
-    description: '사용자를 찾을 수 없음',
+    description: '존재하지 않는 사용자',
   })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -93,5 +93,13 @@ export class UserController {
     return this.userService.remove(id);
   }
 
-  // TODO: 사용자 삭제 취소
+  @ApiOperation({ summary: '사용자 삭제 취소' })
+  @ApiOkResponse({
+    description: '성공',
+  })
+  @ApiNotFoundResponse({ description: '존재하지 않는 사용자' })
+  @Patch(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.userService.restore(id);
+  }
 }
