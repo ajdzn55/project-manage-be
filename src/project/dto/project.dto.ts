@@ -75,7 +75,10 @@ export class ProjectDto {
   status?: ProjectStatus | null;
 }
 
-export class ProjectSimpleDto extends OmitType(ProjectDto, ['createdBy']) {
+export class ProjectSimpleDto extends OmitType(ProjectDto, [
+  'createdBy',
+  'description',
+]) {
   /**
    * 생성자 id
    */
