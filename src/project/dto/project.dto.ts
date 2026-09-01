@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { getEnumDescriptionString } from '../../common/utils';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
@@ -17,7 +18,7 @@ export class ProjectDto {
    */
   @Expose()
   @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   id: string;
 
   /**
@@ -74,7 +75,10 @@ export class ProjectDto {
   status?: ProjectStatus | null;
 }
 
-export class ProjectSimpleDto extends OmitType(ProjectDto, ['createdBy']) {
+export class ProjectSimpleDto extends OmitType(ProjectDto, [
+  'createdBy',
+  'description',
+]) {
   /**
    * 생성자 id
    */

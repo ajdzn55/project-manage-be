@@ -43,6 +43,7 @@ export class User {
     name: 'deleted_at',
     type: 'timestamp',
     comment: '삭제일시',
+    nullable: true,
   })
-  deletedAt: Date;
+  deletedAt?: Date | null;
 }

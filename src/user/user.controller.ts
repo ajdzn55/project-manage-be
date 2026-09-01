@@ -16,6 +16,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { SignUpDto } from '../auth/dto/sign-up.dto';
 import { UserDto, UserSearchQueryDto } from './dto/user.dto';
 import {
+  ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -24,14 +25,14 @@ import {
 } from '@nestjs/swagger';
 
 @UseInterceptors(ClassSerializerInterceptor)
-@ApiTags('user')
+@ApiTags('사용자')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: '사용자 생성 (회원가입)' })
-  @ApiResponse({
-    status: 201,
+  @ApiCreatedResponse({
+    type: String,
     description: '성공 시 사용자 아이디 반환',
   })
   @ApiResponse({
@@ -64,7 +65,7 @@ export class UserController {
     type: UserDto,
   })
   @ApiNotFoundResponse({
-    description: '사용자를 찾을 수 없음',
+    description: '존재하지 않는 사용자',
   })
   @Get(':id')
   findOne(@Param('id') id: string): Promise<UserDto> {
@@ -76,7 +77,7 @@ export class UserController {
     description: '성공',
   })
   @ApiNotFoundResponse({
-    description: '사용자를 찾을 수 없음',
+    description: '존재하지 않는 사용자',
   })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -90,5 +91,15 @@ export class UserController {
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.userService.remove(id);
+  }
+
+  @ApiOperation({ summary: '사용자 삭제 취소' })
+  @ApiOkResponse({
+    description: '성공',
+  })
+  @ApiNotFoundResponse({ description: '존재하지 않는 사용자' })
+  @Patch(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.userService.restore(id);
   }
 }

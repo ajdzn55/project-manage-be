@@ -76,6 +76,19 @@ export class UserService {
     }
   }
 
+  async restore(id: string): Promise<void> {
+    const existingUser = await this.repository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    await this.repository.restore(id);
+  }
+
   /* 비밀번호 관련 유틸함수 */
   async hashPassword(password: string): Promise<string> {
     const saltRounds = 10; // 암호화 난이도 (강도)

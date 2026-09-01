@@ -2,27 +2,44 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { DataSource, DeepPartial, Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { User } from '../user/entities/user.entity';
+import { ProjectMember } from '../project-member/entities/project-member.entity';
+import { MemberRole } from '../common/enums';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly repository: Repository<Project>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createProjectDto: CreateProjectDto): Promise<string> {
-    const { createdById, ...res } = createProjectDto;
-    const createdBy = { id: createdById } satisfies DeepPartial<User>;
-    const project = this.repository.create({
-      ...res,
-      createdBy,
-    });
-    const result = await this.repository.save(project);
+    return this.dataSource.transaction(async (manager) => {
+      const repository = manager.getRepository(Project);
 
-    return result.id;
+      const { createdById, ...res } = createProjectDto;
+      const createdBy = { id: createdById } satisfies DeepPartial<User>;
+      const project = repository.create({
+        ...res,
+        createdBy,
+      });
+      const savedProject = await repository.save(project);
+
+      const memberRepository = manager.getRepository(ProjectMember);
+
+      const owner = memberRepository.create({
+        projectId: savedProject.id,
+        // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
+        userId: createdById,
+        role: MemberRole.Owner,
+      });
+      await memberRepository.save(owner);
+
+      return savedProject.id;
+    });
   }
 
   findAll(): Promise<Project[]> {
