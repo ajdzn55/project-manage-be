@@ -101,3 +101,25 @@ export class TaskDto {
   })
   backgroundColor: string;
 }
+
+export class TaskSearchQueryDto {
+  /**
+   * 프로젝트 ID
+   */
+  @Expose()
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
+
+  /**
+   * 조회년월
+   * @example 2026-09
+   */
+  @Expose()
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/, {
+    message: 'month는 yyyy-MM 형식이어야 합니다.',
+  })
+  month?: string;
+}

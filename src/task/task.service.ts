@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from '../project/entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { TaskPriority, TaskStatus } from '../common/enums';
+import { TaskSearchQueryDto } from './dto/task.dto';
 
 @Injectable()
 export class TaskService {
@@ -44,16 +45,32 @@ export class TaskService {
     return task.id;
   }
 
-  async findAll(projectId: string) {
-    const targetProject = await this.projectRepository.findOne({
-      where: { id: projectId },
-    });
+  getTasks(params: TaskSearchQueryDto) {
+    const qb = this.repository.createQueryBuilder('t');
 
-    if (!targetProject) {
-      throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
+    if (params.projectId) {
+      qb.where('t.project = :projectId', { projectId: params.projectId });
     }
+    if (params.month) {
+      const targetMonth = params.month.replace('-', '');
+      const year = Number(targetMonth.substring(0, 4));
+      const month = Number(targetMonth.substring(4, 6));
 
-    return await this.repository.findBy({ project: { id: targetProject.id } });
+      const nextYear = month === 12 ? year + 1 : year;
+      const nextMonth = month === 12 ? 1 : month + 1;
+
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+
+      const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+
+      qb.andWhere('t.due_date >= :startDate', { startDate }).andWhere(
+        't.due_date < :endDate',
+        { endDate },
+      );
+    }
+    qb.orderBy('t.dueDate', 'ASC');
+
+    return qb.getMany();
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
