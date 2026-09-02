@@ -34,7 +34,7 @@ export class TaskService {
       ...res,
       project: targetProject,
       status: status ?? TaskStatus.Todo,
-      priority: priority ?? TaskPriority.Medium,
+      priority: priority ?? TaskPriority.Low,
       assignee: assigneeId ? { id: assigneeId } : null,
       createdBy: { id: createdById } as User, // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
     });

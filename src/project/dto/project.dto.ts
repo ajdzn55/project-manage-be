@@ -66,13 +66,13 @@ export class ProjectDto {
    * 프로젝트 상태
    */
   @Expose()
-  @IsOptional()
   @IsEnum(ProjectStatus)
   @ApiProperty({
     enum: ProjectStatus,
     description: `상태 [${getEnumDescriptionString(projectStatusDesc)}]`,
+    default: ProjectStatus.Planned,
   })
-  status?: ProjectStatus | null;
+  status: ProjectStatus;
 }
 
 export class ProjectSimpleDto extends OmitType(ProjectDto, [

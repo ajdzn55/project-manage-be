@@ -14,7 +14,7 @@ import {
   IsUUID,
   Matches,
 } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { getEnumDescriptionString } from '../../common/utils';
 
 export class TaskDto {
@@ -45,25 +45,25 @@ export class TaskDto {
    * 작업 상태
    */
   @Expose()
-  @IsOptional()
   @IsEnum(TaskStatus)
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: TaskStatus,
     description: `상태 [${getEnumDescriptionString(taskStatusDesc)}]`,
+    default: TaskStatus.Todo,
   })
-  status?: TaskStatus | null;
+  status: TaskStatus;
 
   /**
    * 우선순위
    */
   @Expose()
-  @IsOptional()
   @IsEnum(TaskPriority)
-  @ApiPropertyOptional({
+  @ApiProperty({
     enum: TaskPriority,
     description: `우선순위 [${getEnumDescriptionString(taskPriorityDesc)}]`,
+    default: TaskPriority.Low,
   })
-  priority?: TaskPriority | null;
+  priority: TaskPriority;
 
   /**
    * 담당자 아이디
@@ -94,10 +94,10 @@ export class TaskDto {
    * 캘린더 색상
    */
   @Expose()
-  @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @Matches(/^#[0-9A-Fa-f]{6}$/, {
     message: 'backgroundColor는 #을 포함한 6자리 16진수여야 합니다.',
   })
-  backgroundColor?: string;
+  backgroundColor: string;
 }
