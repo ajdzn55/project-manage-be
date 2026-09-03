@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   SerializeOptions,
@@ -64,7 +65,7 @@ export class ProjectController {
     excludeExtraneousValues: true,
   })
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.projectService.findOne(id);
   }
 
@@ -76,7 +77,10 @@ export class ProjectController {
     description: '프로젝트를 찾을 수 없음',
   })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
     return this.projectService.update(id, updateProjectDto);
   }
 
@@ -88,7 +92,7 @@ export class ProjectController {
     description: '프로젝트를 찾을 수 없음',
   })
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.projectService.remove(id);
   }
 }
