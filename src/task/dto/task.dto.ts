@@ -122,4 +122,14 @@ export class TaskSearchQueryDto {
     message: 'month는 yyyy-MM 형식이어야 합니다.',
   })
   month?: string;
+
+  /**
+   * 내 작업만 조회 여부
+   */
+  @Expose()
+  @IsOptional()
+  // @IsBooleanQuery()
+  // isMyTask?: boolean;
+  @IsString()
+  isMyTask?: string;
 }

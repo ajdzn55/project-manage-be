@@ -48,9 +48,15 @@ export class TaskService {
   getTasks(params: TaskSearchQueryDto) {
     const qb = this.repository.createQueryBuilder('t');
 
-    if (params.projectId) {
-      qb.where('t.project = :projectId', { projectId: params.projectId });
+    if (params.isMyTask) {
+      // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
+      qb.where('t.createdBy = :createdById', { createdById: params.isMyTask });
     }
+
+    if (params.projectId) {
+      qb.andWhere('t.project = :projectId', { projectId: params.projectId });
+    }
+
     if (params.month) {
       const targetMonth = params.month.replace('-', '');
       const year = Number(targetMonth.substring(0, 4));

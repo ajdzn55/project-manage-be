@@ -37,13 +37,13 @@ export class TaskController {
   @ApiOperation({ summary: '작업 목록 조회' })
   @ApiOkResponse({ type: TaskDto, isArray: true, description: '성공' })
   @ApiBadRequestResponse({
-    description: 'projectId 또는 month 중 하나는 반드시 입력해야 합니다.',
+    description: '조회 조건 중 하나는 반드시 입력해야 합니다.',
   })
   @Get()
   getTasks(@Query() query: TaskSearchQueryDto): Promise<TaskDto[]> {
-    if (query.projectId === undefined && query.month === undefined) {
+    if (Object.values(query).every((v) => v === undefined)) {
       throw new BadRequestException(
-        'projectId 또는 month 중 하나는 반드시 입력해야 합니다.',
+        '조회 조건 중 하나는 반드시 입력해야 합니다.',
       );
     }
 
