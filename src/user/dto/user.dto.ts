@@ -1,12 +1,12 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import {
-  IsBoolean,
   IsDate,
   IsEmail,
   IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { IsBooleanQuery } from '../../common/decorators/is-boolean-query.decorator';
 
 export class UserDto {
   /**
@@ -38,16 +38,9 @@ export class UserSearchQueryDto {
   /**
    * 삭제 건 포함 여부
    */
+  @Expose()
   @IsOptional()
-  @Transform(({ value }) => {
-    const rawValue: unknown = value;
-
-    if (rawValue === 'true') return true;
-    if (rawValue === 'false') return false;
-
-    return rawValue;
-  })
-  @IsBoolean()
+  @IsBooleanQuery()
   withDeleted?: boolean;
 }
 
