@@ -66,6 +66,7 @@ export class ProjectService {
           userId: v.userId,
           role: v.role,
           name: v.user?.name,
+          email: v.user.email,
         })) ?? [],
     };
   }
