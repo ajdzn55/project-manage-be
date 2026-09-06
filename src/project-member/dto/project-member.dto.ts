@@ -12,6 +12,14 @@ export class ProjectMemberDto {
   userId: string;
 
   /**
+   * 멤버 이름
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  /**
    * 멤버 역할
    */
   @Expose()
