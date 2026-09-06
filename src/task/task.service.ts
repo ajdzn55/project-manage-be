@@ -1,48 +1,74 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from '../project/entities/project.entity';
 import { User } from '../user/entities/user.entity';
-import { TaskPriority, TaskStatus } from '../common/enums';
+import { MemberRole, TaskPriority, TaskStatus } from '../common/enums';
 import { TaskSearchQueryDto } from './dto/task.dto';
+import { ProjectMember } from '../project-member/entities/project-member.entity';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectRepository(Task)
     private readonly repository: Repository<Task>,
-
-    @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createTaskDto: CreateTaskDto) {
-    const targetProject = await this.projectRepository.findOne({
-      where: { id: createTaskDto.projectId },
+    return this.dataSource.transaction(async (manager) => {
+      const projectRepository = manager.getRepository(Project);
+      const targetProject = await projectRepository.findOne({
+        where: { id: createTaskDto.projectId },
+      });
+
+      if (!targetProject) {
+        throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
+      }
+
+      const taskRepository = manager.getRepository(Task);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { projectId, createdById, assigneeId, status, priority, ...res } =
+        createTaskDto;
+      const task = taskRepository.create({
+        ...res,
+        project: targetProject,
+        status: status ?? TaskStatus.Todo,
+        priority: priority ?? TaskPriority.Low,
+        assignee: assigneeId ? { id: assigneeId } : null,
+        createdBy: { id: createdById } as User,
+      });
+
+      await taskRepository.save(task);
+
+      if (assigneeId) {
+        const memberRepository = manager.getRepository(ProjectMember);
+        const targetMember = await memberRepository.findOne({
+          where: {
+            project: { id: targetProject.id },
+            user: { id: assigneeId },
+          },
+        });
+
+        if (!targetMember) {
+          const member = memberRepository.create({
+            project: { id: targetProject.id },
+            user: { id: assigneeId },
+            role:
+              assigneeId === targetProject.createdById
+                ? MemberRole.Owner
+                : MemberRole.Member,
+          });
+
+          await memberRepository.save(member);
+        }
+      }
+
+      return task.id;
     });
-
-    if (!targetProject) {
-      throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { projectId, createdById, assigneeId, status, priority, ...res } =
-      createTaskDto;
-    const task = this.repository.create({
-      ...res,
-      project: targetProject,
-      status: status ?? TaskStatus.Todo,
-      priority: priority ?? TaskPriority.Low,
-      assignee: assigneeId ? { id: assigneeId } : null,
-      createdBy: { id: createdById } as User, // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
-    });
-
-    await this.repository.save(task);
-
-    return task.id;
   }
 
   getTasks(params: TaskSearchQueryDto) {
@@ -80,23 +106,53 @@ export class TaskService {
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {
-    const { assigneeId, ...res } = updateTaskDto;
+    return this.dataSource.transaction(async (manager) => {
+      const taskRepository = manager.getRepository(Task);
+      const { assigneeId, ...res } = updateTaskDto;
 
-    const task = await this.repository.preload({
-      id,
-      ...res,
-      ...(assigneeId !== undefined
-        ? {
-            assignee: assigneeId === null ? null : { id: assigneeId },
-          }
-        : {}),
+      const task = await taskRepository.findOne({
+        where: { id },
+        relations: { project: true },
+      });
+
+      if (!task) {
+        throw new NotFoundException('존재하지 않는 작업입니다.');
+      }
+
+      if (assigneeId && task.assigneeId !== assigneeId) {
+        const { id, createdById } = task.project;
+
+        const memberRepository = manager.getRepository(ProjectMember);
+        const targetMember = await memberRepository.findOne({
+          where: {
+            project: { id },
+            user: { id: assigneeId },
+          },
+        });
+
+        if (!targetMember) {
+          const member = memberRepository.create({
+            project: { id },
+            user: { id: assigneeId },
+            role:
+              assigneeId === createdById ? MemberRole.Owner : MemberRole.Member,
+          });
+
+          await memberRepository.save(member);
+        }
+      }
+
+      taskRepository.merge(task, {
+        ...res,
+        ...(assigneeId !== undefined
+          ? {
+              assignee: assigneeId === null ? null : { id: assigneeId },
+            }
+          : {}),
+      });
+
+      await taskRepository.save(task);
     });
-
-    if (!task) {
-      throw new NotFoundException('존재하지 않는 작업입니다.');
-    }
-
-    await this.repository.save(task);
   }
 
   async remove(id: string) {
