@@ -40,11 +40,19 @@ export class Task {
   @Column('text', { comment: '작업 설명', nullable: true })
   description?: string;
 
-  @Column('varchar', { comment: '작업 상태', nullable: true, length: 20 })
-  status?: TaskStatus | null;
+  @Column('varchar', {
+    comment: '작업 상태',
+    default: TaskStatus.Todo,
+    length: 20,
+  })
+  status: TaskStatus;
 
-  @Column('varchar', { comment: '우선순위', nullable: true, length: 20 })
-  priority?: TaskPriority | null;
+  @Column('varchar', {
+    comment: '우선순위',
+    default: TaskPriority.Low,
+    length: 20,
+  })
+  priority: TaskPriority;
 
   /* 담당자 */
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
@@ -91,7 +99,6 @@ export class Task {
     name: 'background_color',
     comment: '캘린더 표시 색상',
     length: 7,
-    default: '#FFFFFF',
   })
-  backgroundColor?: string;
+  backgroundColor: string;
 }

@@ -6,7 +6,7 @@ import { DataSource, DeepPartial, Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { ProjectMember } from '../project-member/entities/project-member.entity';
-import { MemberRole } from '../common/enums';
+import { MemberRole, ProjectStatus } from '../common/enums';
 
 @Injectable()
 export class ProjectService {
@@ -20,10 +20,11 @@ export class ProjectService {
     return this.dataSource.transaction(async (manager) => {
       const repository = manager.getRepository(Project);
 
-      const { createdById, ...res } = createProjectDto;
+      const { status, createdById, ...res } = createProjectDto;
       const createdBy = { id: createdById } satisfies DeepPartial<User>;
       const project = repository.create({
         ...res,
+        status: status ?? ProjectStatus.Planned,
         createdBy,
       });
       const savedProject = await repository.save(project);

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from '../project/entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { TaskPriority, TaskStatus } from '../common/enums';
+import { TaskSearchQueryDto } from './dto/task.dto';
 
 @Injectable()
 export class TaskService {
@@ -34,7 +35,7 @@ export class TaskService {
       ...res,
       project: targetProject,
       status: status ?? TaskStatus.Todo,
-      priority: priority ?? TaskPriority.Medium,
+      priority: priority ?? TaskPriority.Low,
       assignee: assigneeId ? { id: assigneeId } : null,
       createdBy: { id: createdById } as User, // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
     });
@@ -44,16 +45,38 @@ export class TaskService {
     return task.id;
   }
 
-  async findAll(projectId: string) {
-    const targetProject = await this.projectRepository.findOne({
-      where: { id: projectId },
-    });
+  getTasks(params: TaskSearchQueryDto) {
+    const qb = this.repository.createQueryBuilder('t');
 
-    if (!targetProject) {
-      throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
+    if (params.isMyTask) {
+      // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
+      qb.where('t.createdBy = :createdById', { createdById: params.isMyTask });
     }
 
-    return await this.repository.findBy({ project: { id: targetProject.id } });
+    if (params.projectId) {
+      qb.andWhere('t.project = :projectId', { projectId: params.projectId });
+    }
+
+    if (params.month) {
+      const targetMonth = params.month.replace('-', '');
+      const year = Number(targetMonth.substring(0, 4));
+      const month = Number(targetMonth.substring(4, 6));
+
+      const nextYear = month === 12 ? year + 1 : year;
+      const nextMonth = month === 12 ? 1 : month + 1;
+
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+
+      const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+
+      qb.andWhere('t.due_date >= :startDate', { startDate }).andWhere(
+        't.due_date < :endDate',
+        { endDate },
+      );
+    }
+    qb.orderBy('t.dueDate', 'ASC');
+
+    return qb.getMany();
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {

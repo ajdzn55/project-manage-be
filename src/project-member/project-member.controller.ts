@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseArrayPipe,
+  ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
 import { ProjectMemberService } from './project-member.service';
@@ -31,7 +32,7 @@ export class ProjectMemberController {
   })
   @Post()
   create(
-    @Param('projectId') projectId: string,
+    @Param('projectId', new ParseUUIDPipe()) projectId: string,
     @Body(new ParseArrayPipe({ items: CreateProjectMemberDto }))
     projectMembersDto: CreateProjectMemberDto[],
   ): Promise<void> {

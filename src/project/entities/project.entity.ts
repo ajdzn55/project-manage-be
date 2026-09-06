@@ -71,7 +71,7 @@ export class Project {
     type: 'varchar',
     comment: '프로젝트 상태',
     length: 20,
-    nullable: true,
+    default: ProjectStatus.Planned,
   })
-  status?: ProjectStatus | null;
+  status: ProjectStatus;
 }
