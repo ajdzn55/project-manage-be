@@ -7,6 +7,7 @@ import { Project } from './entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { ProjectMember } from '../project-member/entities/project-member.entity';
 import { MemberRole, ProjectStatus } from '../common/enums';
+import { ProjectDto } from './dto/project.dto';
 
 @Injectable()
 export class ProjectService {
@@ -47,17 +48,27 @@ export class ProjectService {
     return this.repository.find();
   }
 
-  async findOne(id: string): Promise<Project> {
+  async findOne(id: string): Promise<ProjectDto> {
     const existingProject = await this.repository.findOne({
       where: { id },
-      relations: { createdBy: true },
+      withDeleted: true,
+      relations: { createdBy: true, members: { user: true } },
     });
 
     if (!existingProject) {
       throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
     }
 
-    return existingProject;
+    return {
+      ...existingProject,
+      members:
+        existingProject.members?.map((v) => ({
+          userId: v.userId,
+          role: v.role,
+          name: v.user?.name,
+          email: v.user.email,
+        })) ?? [],
+    };
   }
 
   async update(id: string, updateProjectDto: UpdateProjectDto): Promise<void> {

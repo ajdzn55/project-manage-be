@@ -6,7 +6,6 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppDataSource } from './config/data-source';
 import { ProjectModule } from './project/project.module';
-import { ProjectMemberModule } from './project-member/project-member.module';
 import { TaskModule } from './task/task.module';
 
 @Module({
@@ -18,7 +17,6 @@ import { TaskModule } from './task/task.module';
     TypeOrmModule.forRoot(AppDataSource.options),
     UserModule,
     ProjectModule,
-    ProjectMemberModule,
     TaskModule,
   ],
   controllers: [AppController],

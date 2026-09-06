@@ -1,16 +1,8 @@
 import { Expose } from 'class-transformer';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { MemberRole } from '../../common/enums';
 
 export class ProjectMemberDto {
-  /**
-   * 프로젝트 ID
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsUUID()
-  projectId: string;
-
   /**
    * 멤버 아이디
    */
@@ -18,6 +10,22 @@ export class ProjectMemberDto {
   @IsNotEmpty()
   @IsString()
   userId: string;
+
+  /**
+   * 멤버 이름
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  /**
+   * 멤버 이메일
+   */
+  @Expose()
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
   /**
    * 멤버 역할

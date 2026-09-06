@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
   RelationId,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { ProjectStatus } from '../../common/enums';
+import { ProjectMember } from '../../project-member/entities/project-member.entity';
 
 @Entity({ comment: '프로젝트' })
 export class Project {
@@ -74,4 +76,8 @@ export class Project {
     default: ProjectStatus.Planned,
   })
   status: ProjectStatus;
+
+  /* 프로젝트 멤버 */
+  @OneToMany(() => ProjectMember, (member) => member.project)
+  members?: ProjectMember[];
 }
