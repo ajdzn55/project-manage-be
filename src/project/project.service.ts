@@ -50,7 +50,7 @@ export class ProjectService {
   async findOne(id: string): Promise<Project> {
     const existingProject = await this.repository.findOne({
       where: { id },
-      relations: { createdBy: true },
+      relations: { createdBy: true, members: true },
     });
 
     if (!existingProject) {

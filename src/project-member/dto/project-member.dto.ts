@@ -1,16 +1,8 @@
 import { Expose } from 'class-transformer';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { MemberRole } from '../../common/enums';
 
 export class ProjectMemberDto {
-  /**
-   * 프로젝트 ID
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsUUID()
-  projectId: string;
-
   /**
    * 멤버 아이디
    */

@@ -15,7 +15,10 @@ export class ProjectMember {
   @PrimaryColumn('uuid', { name: 'project_id', comment: '프로젝트 ID' })
   projectId: string;
 
-  @ManyToOne(() => Project, { onDelete: 'CASCADE', nullable: false })
+  @ManyToOne(() => Project, (project) => project.members, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
   @JoinColumn({
     name: 'project_id',
     referencedColumnName: 'id',

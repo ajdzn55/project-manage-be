@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { getEnumDescriptionString } from '../../common/utils';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
-import { UserDto } from '../../user/dto/user.dto';
+import { ProjectMemberDto } from '../../project-member/dto/project-member.dto';
 
 export class ProjectDto {
   /**
@@ -56,11 +56,12 @@ export class ProjectDto {
   endDate?: string | null;
 
   /**
-   * 생성자
+   * 생성자 아이디
    */
   @Expose()
-  @Type(() => UserDto)
-  createdBy: UserDto;
+  @IsNotEmpty()
+  @IsString()
+  createdById: string;
 
   /**
    * 프로젝트 상태
@@ -73,17 +74,17 @@ export class ProjectDto {
     default: ProjectStatus.Planned,
   })
   status: ProjectStatus;
+
+  /**
+   * 프로젝트 멤버
+   */
+  @Expose()
+  @Type(() => ProjectMemberDto)
+  @ApiProperty({ type: () => ProjectMemberDto, isArray: true })
+  members?: ProjectMemberDto[];
 }
 
 export class ProjectSimpleDto extends OmitType(ProjectDto, [
-  'createdBy',
   'description',
-]) {
-  /**
-   * 생성자 id
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsString()
-  createdById: string;
-}
+  'members',
+]) {}
