@@ -1,6 +1,14 @@
 import { Expose } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { MemberRole } from '../../common/enums';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { MemberRole, memberRoleDesc } from '../../common/enums';
+import { ApiProperty } from '@nestjs/swagger';
+import { getEnumDescriptionString } from '../../common/utils';
 
 export class ProjectMemberDto {
   /**
@@ -32,6 +40,10 @@ export class ProjectMemberDto {
    */
   @Expose()
   @IsNotEmpty()
-  @IsString()
+  @ApiProperty({
+    enum: MemberRole,
+    description: `상태 [${getEnumDescriptionString(memberRoleDesc)}]`,
+  })
+  @IsEnum(MemberRole)
   role: MemberRole;
 }
