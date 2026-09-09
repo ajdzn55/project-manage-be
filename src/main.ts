@@ -12,7 +12,8 @@ async function bootstrap() {
     .setTitle('Project Manage Servie API')
     .setDescription('프로젝트 관리 서비스 REST API 문서')
     .setVersion('1.0')
-    // .addBearerAuth()
+    .addBearerAuth()
+    .addSecurityRequirements('bearer')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
