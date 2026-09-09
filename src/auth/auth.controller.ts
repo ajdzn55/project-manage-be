@@ -1,0 +1,41 @@
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginInfoDto, LoginRequestDto } from './dto/login.dto';
+import { Public } from '../common/decorators/public.decorator';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import type { Request } from 'express';
+
+type AuthenticatedRequest = Request & {
+  user: { id: string };
+};
+
+@ApiTags('인증')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @ApiOperation({ summary: '로그인', security: [] })
+  @ApiCreatedResponse({ type: String, description: '성공 시 토큰 반환' })
+  @ApiUnauthorizedResponse({ description: '' })
+  @Public()
+  @Post('login')
+  login(@Body() loginDto: LoginRequestDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @ApiOperation({ summary: '로그인 정보 조회' })
+  @ApiOkResponse({
+    type: LoginInfoDto,
+    description: '성공 시 로그인 유저 반환',
+  })
+  @Get('login')
+  getLoginInfo(@Req() request: AuthenticatedRequest) {
+    return this.authService.getLoginInfo(request.user.id);
+  }
+}
