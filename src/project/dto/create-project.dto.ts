@@ -1,7 +1,6 @@
 import { ApiPropertyOptional, PickType } from '@nestjs/swagger';
 import { ProjectDto } from './project.dto';
-import { Expose } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 import { ProjectStatus, projectStatusDesc } from '../../common/enums';
 import { getEnumDescriptionString } from '../../common/utils';
 
@@ -22,12 +21,4 @@ export class CreateProjectDto extends PickType(ProjectDto, [
   @IsOptional()
   @IsEnum(ProjectStatus)
   status?: ProjectStatus;
-
-  /**
-   * 생성자 id
-   */
-  @Expose()
-  @IsNotEmpty()
-  @IsString()
-  createdById: string;
 }

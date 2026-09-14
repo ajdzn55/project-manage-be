@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   SerializeOptions,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
@@ -22,6 +23,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ProjectDto, ProjectSimpleDto } from './dto/project.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('프로젝트')
@@ -30,11 +33,17 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
   @ApiOperation({ summary: '프로젝트 생성' })
-  @ApiCreatedResponse({ type: String, description: '성공 시 프로젝트 id 반환' })
+  @ApiCreatedResponse({
+    type: () => String,
+    description: '성공 시 프로젝트 id 반환',
+  })
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
-    return this.projectService.create(createProjectDto);
+  create(
+    @Body() createProjectDto: CreateProjectDto,
+    @GetUser() user: UserFromJwt,
+  ) {
+    return this.projectService.create(createProjectDto, user.id);
   }
 
   @ApiOperation({ summary: '프로젝트 목록 조회' })

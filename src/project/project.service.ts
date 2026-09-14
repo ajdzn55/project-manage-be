@@ -17,12 +17,15 @@ export class ProjectService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto): Promise<string> {
+  async create(
+    createProjectDto: CreateProjectDto,
+    userId: string,
+  ): Promise<string> {
     return this.dataSource.transaction(async (manager) => {
       const repository = manager.getRepository(Project);
 
-      const { status, createdById, ...res } = createProjectDto;
-      const createdBy = { id: createdById } satisfies DeepPartial<User>;
+      const { status, ...res } = createProjectDto;
+      const createdBy = { id: userId } satisfies DeepPartial<User>;
       const project = repository.create({
         ...res,
         status: status ?? ProjectStatus.Planned,
@@ -34,8 +37,7 @@ export class ProjectService {
 
       const owner = memberRepository.create({
         projectId: savedProject.id,
-        // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
-        userId: createdById,
+        userId,
         role: MemberRole.Owner,
       });
       await memberRepository.save(owner);
