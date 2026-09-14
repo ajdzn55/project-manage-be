@@ -74,7 +74,7 @@ export class TaskService {
     const qb = this.repository.createQueryBuilder('t');
 
     if (params.isMyTask) {
-      qb.where('t.createdBy = :createdById', { createdById: userId });
+      qb.where('t.assignee_id = :assigneeId', { assigneeId: userId });
     }
 
     if (params.projectId) {
