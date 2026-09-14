@@ -2,6 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Header,
+  HttpCode,
+  HttpStatus,
   Post,
   Req,
   Res,
@@ -57,6 +60,7 @@ export class AuthController {
   }
 
   @Public()
+  @HttpCode(HttpStatus.OK)
   @Post('refresh')
   refresh(@Req() request: Request) {
     const prevRefreshToken: unknown = request.cookies?.['refreshToken'];
@@ -75,6 +79,7 @@ export class AuthController {
     type: LoginInfoDto,
     description: '성공 시 로그인 유저 반환',
   })
+  @Header('Cache-Control', 'no-store')
   @Get('login')
   getLoginInfo(@Req() request: AuthenticatedRequest) {
     return this.authService.getLoginInfo(request.user.id);
