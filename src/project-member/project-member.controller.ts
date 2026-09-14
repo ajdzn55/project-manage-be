@@ -26,7 +26,7 @@ export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
   @ApiOperation({ summary: '프로젝트 멤버 추가' })
-  @ApiCreatedResponse({ type: String, description: '성공' })
+  @ApiCreatedResponse({ type: () => String, description: '성공' })
   @ApiBody({
     type: [CreateProjectMemberDto],
   })

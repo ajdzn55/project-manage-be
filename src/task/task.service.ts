@@ -71,12 +71,11 @@ export class TaskService {
     });
   }
 
-  getTasks(params: TaskSearchQueryDto) {
+  getTasks(params: TaskSearchQueryDto, userId: string) {
     const qb = this.repository.createQueryBuilder('t');
 
     if (params.isMyTask) {
-      // TODO: DTO에서 createdById 없애고 로그인 사용자 아이디로 대체하기
-      qb.where('t.createdBy = :createdById', { createdById: params.isMyTask });
+      qb.where('t.createdBy = :createdById', { createdById: userId });
     }
 
     if (params.projectId) {

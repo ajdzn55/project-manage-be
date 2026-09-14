@@ -8,6 +8,7 @@ import { AppDataSource } from './config/data-source';
 import { ProjectModule } from './project/project.module';
 import { TaskModule } from './task/task.module';
 import { ProjectMemberModule } from './project-member/project-member.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ProjectMemberModule } from './project-member/project-member.module';
     ProjectModule,
     TaskModule,
     ProjectMemberModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

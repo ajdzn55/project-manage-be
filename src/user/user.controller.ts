@@ -23,6 +23,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Public } from '../common/decorators/public.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('사용자')
@@ -30,15 +31,16 @@ import {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: '사용자 생성 (회원가입)' })
+  @ApiOperation({ summary: '사용자 생성 (회원가입)', security: [] })
   @ApiCreatedResponse({
-    type: String,
+    type: () => String,
     description: '성공 시 사용자 아이디 반환',
   })
   @ApiResponse({
     status: 409,
     description: '이미 사용 중인 아이디',
   })
+  @Public()
   @Post()
   create(@Body() signUpDto: SignUpDto): Promise<string> {
     return this.userService.signUp(signUpDto);

@@ -1,11 +1,5 @@
 import { Expose } from 'class-transformer';
-import {
-  IsDate,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { IsBooleanQuery } from '../../common/decorators/is-boolean-query.decorator';
 
 export class UserDto {
@@ -42,14 +36,4 @@ export class UserSearchQueryDto {
   @IsOptional()
   @IsBooleanQuery()
   withDeleted?: boolean;
-}
-
-export class UserLoginDto extends UserDto {
-  /**
-   * 생성일시
-   */
-  @Expose()
-  @IsDate()
-  @IsNotEmpty()
-  createdAt: Date;
 }

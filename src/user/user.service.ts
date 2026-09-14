@@ -94,9 +94,4 @@ export class UserService {
     const saltRounds = 10; // 암호화 난이도 (강도)
     return await bcrypt.hash(password, saltRounds);
   }
-
-  async verifyPassword(password: string, hash: string): Promise<boolean> {
-    // 생성된 해시 값과 DB에 저장된 값 비교
-    return await bcrypt.compare(password, hash);
-  }
 }
