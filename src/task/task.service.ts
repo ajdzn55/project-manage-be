@@ -147,6 +147,13 @@ export class TaskService {
               assignee: assigneeId === null ? null : { id: assigneeId },
             }
           : {}),
+        ...(updateTaskDto.status === TaskStatus.Done &&
+        task.status !== TaskStatus.Done
+          ? { completedAt: new Date() }
+          : updateTaskDto.status !== undefined &&
+              updateTaskDto.status !== TaskStatus.Done
+            ? { completedAt: null }
+            : {}),
       });
 
       await taskRepository.save(task);

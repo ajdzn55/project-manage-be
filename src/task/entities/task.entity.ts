@@ -95,6 +95,13 @@ export class Task {
   })
   updatedAt: Date;
 
+  @Column('timestamp', {
+    name: 'completed_at',
+    comment: '완료일시',
+    nullable: true,
+  })
+  completedAt?: Date | null;
+
   @Column('varchar', {
     name: 'background_color',
     comment: '캘린더 표시 색상',

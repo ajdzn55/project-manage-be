@@ -15,9 +15,10 @@ export class CreateTaskDto extends OmitType(TaskDto, [
   'status',
   'priority',
   'createdById',
+  'completedAt',
 ]) {
   /**
-   * 작업 상태
+   * 작업 상태 (생성 시 완료상태로 지정 불가)
    */
   @Expose()
   @IsEnum(TaskStatus)
