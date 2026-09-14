@@ -9,6 +9,7 @@ import { ProjectMember } from '../project-member/entities/project-member.entity'
 import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
 import { DailyCompletedCounts, ProjectDto } from './dto/project.dto';
 import { Task } from '../task/entities/task.entity';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class ProjectService {
@@ -91,7 +92,7 @@ export class ProjectService {
 
     const dailyCompletedCounts: DailyCompletedCounts[] =
       dailyCompletedCountRows.map(({ date, count }) => ({
-        date,
+        date: dayjs(date).format('YYYY-MM-DD'),
         count: Number(count),
       }));
 
