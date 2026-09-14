@@ -35,9 +35,13 @@ export class TaskController {
     type: () => String,
     description: '성공 시 작업 id 반환',
   })
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto): Promise<string> {
-    return this.taskService.create(createTaskDto);
+  create(
+    @Body() createTaskDto: CreateTaskDto,
+    @GetUser() user: UserFromJwt,
+  ): Promise<string> {
+    return this.taskService.create(createTaskDto, user.id);
   }
 
   @ApiOperation({ summary: '작업 목록 조회' })

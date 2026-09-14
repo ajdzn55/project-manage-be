@@ -14,6 +14,7 @@ export class CreateTaskDto extends OmitType(TaskDto, [
   'id',
   'status',
   'priority',
+  'createdById',
 ]) {
   /**
    * 작업 상태

@@ -18,7 +18,7 @@ export class TaskService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, userId: string) {
     return this.dataSource.transaction(async (manager) => {
       const projectRepository = manager.getRepository(Project);
       const targetProject = await projectRepository.findOne({
@@ -31,15 +31,14 @@ export class TaskService {
 
       const taskRepository = manager.getRepository(Task);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { projectId, createdById, assigneeId, status, priority, ...res } =
-        createTaskDto;
+      const { projectId, assigneeId, status, priority, ...res } = createTaskDto;
       const task = taskRepository.create({
         ...res,
         project: targetProject,
         status: status ?? TaskStatus.Todo,
         priority: priority ?? TaskPriority.Low,
         assignee: assigneeId ? { id: assigneeId } : null,
-        createdBy: { id: createdById } as User,
+        createdBy: { id: userId } as User,
       });
 
       await taskRepository.save(task);

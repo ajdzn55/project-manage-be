@@ -4,7 +4,7 @@ import { IsString, Matches, ValidateIf } from 'class-validator';
 import { Expose } from 'class-transformer';
 
 export class UpdateTaskDto extends PartialType(
-  OmitType(CreateTaskDto, ['projectId', 'createdById', 'backgroundColor']),
+  OmitType(CreateTaskDto, ['projectId', 'backgroundColor']),
 ) {
   /**
    * 캘린더 색상
