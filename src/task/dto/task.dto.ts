@@ -16,6 +16,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { getEnumDescriptionString } from '../../common/utils';
+import { IsBooleanQuery } from '../../common/decorators/is-boolean-query.decorator';
 
 export class TaskDto {
   /**
@@ -128,8 +129,6 @@ export class TaskSearchQueryDto {
    */
   @Expose()
   @IsOptional()
-  // @IsBooleanQuery()
-  // isMyTask?: boolean;
-  @IsString()
-  isMyTask?: string;
+  @IsBooleanQuery()
+  isMyTask?: boolean;
 }
