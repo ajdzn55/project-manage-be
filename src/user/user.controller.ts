@@ -33,7 +33,7 @@ export class UserController {
 
   @ApiOperation({ summary: '사용자 생성 (회원가입)', security: [] })
   @ApiCreatedResponse({
-    type: String,
+    type: () => String,
     description: '성공 시 사용자 아이디 반환',
   })
   @ApiResponse({
