@@ -62,6 +62,7 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
+  @HttpCode(HttpStatus.OK)
   refresh(@Req() request: Request) {
     const prevRefreshToken: unknown = request.cookies?.['refreshToken'];
 
@@ -81,6 +82,7 @@ export class AuthController {
   })
   @Header('Cache-Control', 'no-store')
   @Get('login')
+  @Header('Cache-Control', 'no-store')
   getLoginInfo(@Req() request: AuthenticatedRequest) {
     return this.authService.getLoginInfo(request.user.id);
   }
