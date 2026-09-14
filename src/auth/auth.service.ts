@@ -6,12 +6,14 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -31,7 +33,46 @@ export class AuthService {
     }
 
     // 토큰 발급
-    return await this.jwtService.signAsync({ sub: user.id });
+    const accessToken = this.jwtService.sign(
+      { sub: user.id },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '1h',
+      },
+    );
+    const refreshToken = this.jwtService.sign(
+      { sub: user.id },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '1d',
+      },
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  refreshTokens(refreshToken: string) {
+    try {
+      // Refresh Token 검증(서명/만료 확인) 및 복호화
+      const payload = this.jwtService.verify<{ sub: string }>(refreshToken, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+
+      if (typeof payload.sub !== 'string' || !payload.sub) {
+        throw new UnauthorizedException();
+      }
+
+      // Access Token 발급
+      return this.jwtService.sign(
+        { sub: payload?.sub },
+        {
+          secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+          expiresIn: '15m',
+        },
+      );
+    } catch {
+      throw new UnauthorizedException('유효하지 않은 토큰입니다.');
+    }
   }
 
   async getLoginInfo(userId: string): Promise<LoginInfoDto> {

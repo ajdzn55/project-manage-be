@@ -1,6 +1,18 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginInfoDto, LoginRequestDto } from './dto/login.dto';
+import {
+  LoginInfoDto,
+  LoginRequestDto,
+  LoginResponseDto,
+} from './dto/login.dto';
 import { Public } from '../common/decorators/public.decorator';
 import {
   ApiCreatedResponse,
@@ -9,7 +21,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
 type AuthenticatedRequest = Request & {
   user: { id: string };
@@ -21,12 +33,41 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '로그인', security: [] })
-  @ApiCreatedResponse({ type: String, description: '성공 시 토큰 반환' })
-  @ApiUnauthorizedResponse({ description: '' })
+  @ApiCreatedResponse({
+    type: () => LoginResponseDto,
+    description: '성공',
+  })
+  @ApiUnauthorizedResponse({ description: '로그인 정보가 잘못되었습니다.' })
   @Public()
   @Post('login')
-  login(@Body() loginDto: LoginRequestDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginRequestDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<LoginResponseDto> {
+    const { accessToken, refreshToken } =
+      await this.authService.login(loginDto);
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/api/auth/refresh',
+    });
+
+    return { accessToken };
+  }
+
+  @Public()
+  @Post('refresh')
+  refresh(@Req() request: Request) {
+    const prevRefreshToken: unknown = request.cookies?.['refreshToken'];
+
+    if (typeof prevRefreshToken !== 'string' || !prevRefreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const accessToken = this.authService.refreshTokens(prevRefreshToken);
+
+    return { accessToken };
   }
 
   @ApiOperation({ summary: '로그인 정보 조회' })
