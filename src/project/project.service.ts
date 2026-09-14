@@ -6,14 +6,17 @@ import { DataSource, DeepPartial, Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { ProjectMember } from '../project-member/entities/project-member.entity';
-import { MemberRole, ProjectStatus } from '../common/enums';
-import { ProjectDto } from './dto/project.dto';
+import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
+import { DailyCompletedCounts, ProjectDto } from './dto/project.dto';
+import { Task } from '../task/entities/task.entity';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @InjectRepository(Project)
     private readonly repository: Repository<Project>,
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,6 +64,37 @@ export class ProjectService {
       throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
     }
 
+    const queryBuilder = this.taskRepository
+      .createQueryBuilder('t')
+      .innerJoinAndSelect('t.project', 'p')
+      .where('t.project_id = :projectId', { projectId: existingProject.id });
+
+    // 상태별 건수 계산
+    const tasks = await queryBuilder.getMany();
+    const totalCount = tasks.length;
+    const todoCount = tasks?.filter((v) => v.status === TaskStatus.Todo).length;
+    const inProgressCount = tasks?.filter(
+      (v) => v.status === TaskStatus.InProgress,
+    ).length;
+    const doneCount = tasks?.filter((v) => v.status === TaskStatus.Done).length;
+
+    // 완료일자별 건수 계산
+    const dailyCompletedCountRows = await queryBuilder
+      .clone()
+      .select('DATE(t.completed_at)', 'date')
+      .addSelect('COUNT(*)', 'count')
+      .andWhere('t.status = :status', { status: TaskStatus.Done })
+      .andWhere('t.completed_at IS NOT NULL')
+      .groupBy('DATE(t.completed_at)')
+      .orderBy('DATE(t.completed_at)', 'ASC')
+      .getRawMany<{ date: string; count: string }>();
+
+    const dailyCompletedCounts: DailyCompletedCounts[] =
+      dailyCompletedCountRows.map(({ date, count }) => ({
+        date,
+        count: Number(count),
+      }));
+
     return {
       ...existingProject,
       members:
@@ -70,6 +104,15 @@ export class ProjectService {
           name: v.user?.name,
           email: v.user.email,
         })) ?? [],
+      taskSummary: {
+        totalCount,
+        todoCount,
+        inProgressCount,
+        doneCount,
+        progressRate:
+          totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0,
+        dailyCompletedCounts,
+      },
     };
   }
 

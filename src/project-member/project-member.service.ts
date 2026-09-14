@@ -17,7 +17,7 @@ export class ProjectMemberService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async create(projectId: string, projectMembersDto: CreateProjectMemberDto[]) {
+  async create(projectId: string, projectMemberDto: CreateProjectMemberDto) {
     const targetProject = await this.projectRepository.findOneBy({
       id: projectId,
     });
@@ -26,15 +26,13 @@ export class ProjectMemberService {
       throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
     }
 
-    const newMembers = projectMembersDto.map((v) => {
-      return this.repository.create({
-        projectId,
-        userId: v.userId,
-        role: MemberRole.Member,
-      });
+    const newMember = this.repository.create({
+      projectId,
+      userId: projectMemberDto.userId,
+      role: MemberRole.Member,
     });
 
-    await this.repository.save(newMembers);
+    await this.repository.save(newMember);
   }
 
   async findAll(projectId: string) {

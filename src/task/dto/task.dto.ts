@@ -6,6 +6,7 @@ import {
   taskStatusDesc,
 } from '../../common/enums';
 import {
+  IsDate,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -101,6 +102,14 @@ export class TaskDto {
     message: 'backgroundColor는 #을 포함한 6자리 16진수여야 합니다.',
   })
   backgroundColor: string;
+
+  /**
+   * 완료일시
+   */
+  @Expose()
+  @IsDate()
+  @IsOptional()
+  completedAt?: Date | null;
 }
 
 export class TaskSearchQueryDto {

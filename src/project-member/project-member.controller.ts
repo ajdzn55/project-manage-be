@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Param,
-  ParseArrayPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -26,17 +25,16 @@ export class ProjectMemberController {
   constructor(private readonly projectMemberService: ProjectMemberService) {}
 
   @ApiOperation({ summary: '프로젝트 멤버 추가' })
-  @ApiCreatedResponse({ type: () => String, description: '성공' })
+  @ApiCreatedResponse({ type: String, description: '성공' })
   @ApiBody({
-    type: [CreateProjectMemberDto],
+    type: () => CreateProjectMemberDto,
   })
   @Post()
   create(
     @Param('projectId', new ParseUUIDPipe()) projectId: string,
-    @Body(new ParseArrayPipe({ items: CreateProjectMemberDto }))
-    projectMembersDto: CreateProjectMemberDto[],
+    @Body() projectMemberDto: CreateProjectMemberDto,
   ): Promise<void> {
-    return this.projectMemberService.create(projectId, projectMembersDto);
+    return this.projectMemberService.create(projectId, projectMemberDto);
   }
 
   @ApiOperation({ summary: '프로젝트 멤버 삭제' })
