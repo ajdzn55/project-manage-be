@@ -1,9 +1,11 @@
 import { Expose, Type } from 'class-transformer';
 import { ProjectStatus, projectStatusDesc } from '../../common/enums';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -11,6 +13,76 @@ import {
 import { getEnumDescriptionString } from '../../common/utils';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { ProjectMemberDto } from '../../project-member/dto/project-member.dto';
+
+export class DailyCompletedCounts {
+  /**
+   * 일자
+   * @example 2026-09-14
+   */
+  @Expose()
+  @IsDateString()
+  date: string;
+
+  /**
+   * 완료 건수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  count: number;
+}
+
+export class TaskSummary {
+  /**
+   * 전체 작업 개수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  totalCount: number;
+
+  /**
+   * 대기 작업 개수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  todoCount: number;
+
+  /**
+   * 진행중 작업 개수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  inProgressCount: number;
+
+  /**
+   * 완료 작업 개수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  doneCount: number;
+
+  /**
+   * 진행률
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsNumber()
+  progressRate: number;
+
+  /**
+   * 일별 완료 건수
+   */
+  @Expose()
+  @IsNotEmpty()
+  @IsArray()
+  @Type(() => DailyCompletedCounts)
+  @ApiProperty({ type: () => DailyCompletedCounts, isArray: true })
+  dailyCompletedCounts: DailyCompletedCounts[];
+}
 
 export class ProjectDto {
   /**
@@ -82,6 +154,13 @@ export class ProjectDto {
   @Type(() => ProjectMemberDto)
   @ApiProperty({ type: () => ProjectMemberDto, isArray: true })
   members?: ProjectMemberDto[];
+
+  /**
+   * 프로젝트 작업 진행률
+   */
+  @Expose()
+  @Type(() => TaskSummary)
+  taskSummary: TaskSummary;
 }
 
 export class ProjectSimpleDto extends OmitType(ProjectDto, [
