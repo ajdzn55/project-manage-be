@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -23,7 +22,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('작업')
 @Controller('task')
@@ -35,7 +33,6 @@ export class TaskController {
     type: () => String,
     description: '성공 시 작업 id 반환',
   })
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(
     @Body() createTaskDto: CreateTaskDto,
@@ -49,7 +46,6 @@ export class TaskController {
   @ApiBadRequestResponse({
     description: '조회 조건 중 하나는 반드시 입력해야 합니다.',
   })
-  @UseGuards(JwtAuthGuard)
   @Get()
   getTasks(
     @Query() query: TaskSearchQueryDto,

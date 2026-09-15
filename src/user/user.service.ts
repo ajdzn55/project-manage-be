@@ -10,12 +10,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserSearchQueryDto } from './dto/user.dto';
+import { UserNoticeCheck } from './entities/user-check-notice.entity';
+import dayjs from 'dayjs';
+import { UserNoticeCheckDto } from './dto/user-notice-check.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly repository: Repository<User>,
+    @InjectRepository(UserNoticeCheck)
+    private readonly noticeRepository: Repository<UserNoticeCheck>,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -87,6 +92,32 @@ export class UserService {
     }
 
     await this.repository.restore(id);
+  }
+
+  async checkNotice(id: string): Promise<void> {
+    const existingUser = await this.repository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+
+    const checked = this.noticeRepository.create({
+      userId: id,
+      lastCheckedDate: dayjs().format('YYYY-MM-DD'),
+    });
+
+    await this.noticeRepository.save(checked);
+  }
+
+  async getNoticeCheck(id: string): Promise<UserNoticeCheckDto> {
+    const noticeCheck = await this.noticeRepository.findOne({
+      where: { userId: id },
+    });
+
+    return { lastCheckedDate: noticeCheck?.lastCheckedDate ?? null };
   }
 
   /* 비밀번호 관련 유틸함수 */
