@@ -4,9 +4,12 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
+  Put,
   Query,
   SerializeOptions,
   UseInterceptors,
@@ -24,6 +27,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Public } from '../common/decorators/public.decorator';
+import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
+import { UserNoticeCheckDto } from './dto/user-notice-check.dto';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('사용자')
@@ -59,6 +64,18 @@ export class UserController {
   @Get()
   findAll(@Query() query: UserSearchQueryDto): Promise<UserDto[]> {
     return this.userService.findAll(query);
+  }
+
+  @ApiOperation({
+    summary: '마감 임박 작업 알림 마지막 확인일자 조회',
+  })
+  @ApiOkResponse({
+    description: '성공',
+    type: () => UserNoticeCheckDto,
+  })
+  @Get('check-notice')
+  getNoticeCheck(@GetUser() user: UserFromJwt) {
+    return this.userService.getNoticeCheck(user.id);
   }
 
   @ApiOperation({ summary: '사용자 조회' })
@@ -103,5 +120,12 @@ export class UserController {
   @Patch(':id/restore')
   restore(@Param('id') id: string) {
     return this.userService.restore(id);
+  }
+
+  @ApiOperation({ summary: '마감 임박 작업 알림 확인' })
+  @HttpCode(HttpStatus.OK)
+  @Put('check-notice')
+  checkNotice(@GetUser() user: UserFromJwt) {
+    return this.userService.checkNotice(user.id);
   }
 }
