@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   SerializeOptions,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
@@ -23,7 +22,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ProjectDto, ProjectSimpleDto } from './dto/project.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -37,7 +35,6 @@ export class ProjectController {
     type: () => String,
     description: '성공 시 프로젝트 id 반환',
   })
-  @UseGuards(JwtAuthGuard)
   @Post()
   create(
     @Body() createProjectDto: CreateProjectDto,
