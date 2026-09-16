@@ -48,10 +48,10 @@ describe('AuthController', () => {
         password: 'test',
       };
 
-      serviceMock.login.mockResolvedValue({
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-      });
+      const accessToken = 'access-token';
+      const refreshToken = 'refresh-token';
+
+      serviceMock.login.mockResolvedValue({ accessToken, refreshToken });
 
       const response = { cookie: jest.fn() };
 
@@ -64,7 +64,7 @@ describe('AuthController', () => {
       expect(serviceMock.login).toHaveBeenCalledWith(loginDto);
       expect(response.cookie).toHaveBeenCalledWith(
         'refreshToken',
-        'refresh-token',
+        refreshToken,
         {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
@@ -72,23 +72,26 @@ describe('AuthController', () => {
           path: '/api/auth/refresh',
         },
       );
-      expect(result).toEqual({ accessToken: 'access-token' });
+      expect(result).toEqual({ accessToken });
     });
   });
 
   describe('refresh', () => {
     it('쿠키의 refresh token으로 access token을 재발급한다.', () => {
+      const refreshToken = 'refresh-token';
+      const newAccessToken = 'new-access-token';
+
       const request = {
-        cookies: { refreshToken: 'refresh-token' },
+        cookies: { refreshToken },
       } as unknown as Request;
 
-      serviceMock.refreshTokens.mockReturnValue('new-access-token');
+      serviceMock.refreshTokens.mockReturnValue(newAccessToken);
 
       const result = controller.refresh(request);
 
       expect(serviceMock.refreshTokens).toHaveBeenCalledTimes(1);
-      expect(serviceMock.refreshTokens).toHaveBeenCalledWith('refresh-token');
-      expect(result).toEqual({ accessToken: 'new-access-token' });
+      expect(serviceMock.refreshTokens).toHaveBeenCalledWith(refreshToken);
+      expect(result).toEqual({ accessToken: newAccessToken });
     });
 
     it('refresh token 쿠키가 없으면 UnauthorizedException을 던진다.', () => {
@@ -101,18 +104,20 @@ describe('AuthController', () => {
 
   describe('getLoginInfo', () => {
     it('인증된 사용자 id로 로그인 사용자 정보를 조회한다.', async () => {
-      const request = {
-        user: { id: 'test' },
-      } as Request & { user: { id: string } };
-      const loginInfo = { id: 'test' };
+      const requestUserId = 'test';
 
-      serviceMock.getLoginInfo.mockResolvedValue(loginInfo);
+      const request = {
+        user: { id: requestUserId },
+      } as Request & { user: { id: string } };
+      const foundLoginInfo = { id: requestUserId };
+
+      serviceMock.getLoginInfo.mockResolvedValue(foundLoginInfo);
 
       const result = await controller.getLoginInfo(request);
 
       expect(serviceMock.getLoginInfo).toHaveBeenCalledTimes(1);
-      expect(serviceMock.getLoginInfo).toHaveBeenCalledWith('test');
-      expect(result).toBe(loginInfo);
+      expect(serviceMock.getLoginInfo).toHaveBeenCalledWith(requestUserId);
+      expect(result).toBe(foundLoginInfo);
     });
   });
 });

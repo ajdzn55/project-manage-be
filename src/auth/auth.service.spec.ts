@@ -83,7 +83,11 @@ describe('AuthService', () => {
         password: 'hashed-password',
       } as User;
 
-      const payload = { sub: 'test' };
+      const accessToken = 'access-token';
+      const refreshToken = 'refresh-token';
+      const payload = { sub: user.id };
+      const accessSecret = 'access-secret';
+      const refreshSecret = 'refresh-secret';
 
       queryBuilder.getOne.mockResolvedValue(user);
 
@@ -93,42 +97,39 @@ describe('AuthService', () => {
 
       configService.getOrThrow.mockImplementation((key: string) => {
         if (key === 'JWT_ACCESS_SECRET') {
-          return 'access-secret';
+          return accessSecret;
         }
-        return 'refresh-secret';
+        return refreshSecret;
       });
 
       jwtService.sign
-        .mockReturnValueOnce('access-token')
-        .mockReturnValueOnce('refresh-token');
+        .mockReturnValueOnce(accessToken)
+        .mockReturnValueOnce(refreshToken);
 
       const result = await service.login(loginDto);
 
       expect(userRepository.createQueryBuilder).toHaveBeenCalledWith('u');
       expect(queryBuilder.addSelect).toHaveBeenCalledWith('u.password');
       expect(queryBuilder.where).toHaveBeenCalledWith('id = :id', {
-        id: 'test',
+        id: loginDto.id,
       });
       expect(queryBuilder.getOne).toHaveBeenCalledTimes(1);
 
       expect(verifyPasswordSpy).toHaveBeenCalledWith(
-        'plain-password',
-        'hashed-password',
+        loginDto.password,
+        user.password,
       );
 
       expect(jwtService.sign).toHaveBeenNthCalledWith(1, payload, {
-        secret: 'access-secret',
+        secret: accessSecret,
         expiresIn: '1h',
       });
       expect(jwtService.sign).toHaveBeenNthCalledWith(2, payload, {
-        secret: 'refresh-secret',
+        secret: refreshSecret,
         expiresIn: '1d',
       });
 
-      expect(result).toEqual({
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-      });
+      expect(result).toEqual({ accessToken, refreshToken });
     });
 
     it('사용자가 존재하지 않는 경우 UnauthorizedException을 던진다.', async () => {
@@ -181,27 +182,31 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('유효한 refresh token이면 새로운 access token을 발급하여 반환한다.', () => {
+      const refreshToken = 'refresh-token';
+      const newAccessToken = 'new-access-token';
       const payload = { sub: 'test' };
+      const accessSecret = 'access-secret';
+      const refreshSecret = 'refresh-secret';
 
       configService.getOrThrow.mockImplementation((key: string) => {
         if (key === 'JWT_REFRESH_SECRET') {
-          return 'refresh-secret';
+          return refreshSecret;
         }
-        return 'access-secret';
+        return accessSecret;
       });
       jwtService.verify.mockReturnValue(payload);
-      jwtService.sign.mockReturnValue('new-access-token');
+      jwtService.sign.mockReturnValue(newAccessToken);
 
-      const result = service.refreshTokens('refresh-token');
+      const result = service.refreshTokens(refreshToken);
 
-      expect(jwtService.verify).toHaveBeenCalledWith('refresh-token', {
-        secret: 'refresh-secret',
+      expect(jwtService.verify).toHaveBeenCalledWith(refreshToken, {
+        secret: refreshSecret,
       });
       expect(jwtService.sign).toHaveBeenCalledWith(payload, {
-        secret: 'access-secret',
+        secret: accessSecret,
         expiresIn: '15m',
       });
-      expect(result).toBe('new-access-token');
+      expect(result).toBe(newAccessToken);
     });
 
     it('refresh token 검증에 실패하면 UnauthorizedException을 던진다.', () => {
@@ -229,24 +234,25 @@ describe('AuthService', () => {
 
   describe('getLoginInfo', () => {
     it('사용자를 조회하여 로그인 사용자 정보를 반환한다.', async () => {
-      const user = {
-        id: 'test',
+      const requestUserId = 'test';
+      const foundUser = {
+        id: requestUserId,
         name: '테스트',
         email: 'test@example.com',
         createdAt: new Date('2026-09-16T00:00:00.000Z'),
         password: 'hashed-password',
       } as User;
 
-      userService.findOne.mockResolvedValue(user);
+      userService.findOne.mockResolvedValue(foundUser);
 
-      const result = await service.getLoginInfo('test');
+      const result = await service.getLoginInfo(requestUserId);
 
-      expect(userService.findOne).toHaveBeenCalledWith('test');
+      expect(userService.findOne).toHaveBeenCalledWith(requestUserId);
       expect(result).toEqual({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt,
+        id: foundUser.id,
+        name: foundUser.name,
+        email: foundUser.email,
+        createdAt: foundUser.createdAt,
       });
     });
   });
