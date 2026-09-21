@@ -62,8 +62,13 @@ export class ProjectMemberController {
   @Patch(':memberId')
   update(
     @Param('projectId') projectId: string,
+    @Param('memberId') memberId: string,
     @Body() updateProjectMemberDto: UpdateProjectMemberDto,
   ) {
-    return this.projectMemberService.update(projectId, updateProjectMemberDto);
+    return this.projectMemberService.update(
+      projectId,
+      memberId,
+      updateProjectMemberDto,
+    );
   }
 }
