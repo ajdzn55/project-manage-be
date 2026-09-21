@@ -68,6 +68,7 @@ export class ProjectMemberService {
 
   async update(
     projectId: string,
+    userId: string,
     updateProjectMemberDto: UpdateProjectMemberDto,
   ) {
     const targetProject = await this.projectRepository.findOneBy({
@@ -77,11 +78,9 @@ export class ProjectMemberService {
     if (!targetProject) {
       throw new NotFoundException('존재하지 않는 프로젝트 입니다.');
     }
-
-    const { userId, role } = updateProjectMemberDto;
     const result = await this.repository.update(
       { projectId, user: { id: userId } },
-      { role },
+      { role: updateProjectMemberDto.role },
     );
 
     if (!result.affected) {
