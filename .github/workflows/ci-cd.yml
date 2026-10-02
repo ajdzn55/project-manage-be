@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npx eslint "{src,apps,libs,test}/**/*.ts" --ignore-pattern "src/migrations/**"
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
 
       - name: Run unit tests
         run: npm test -- --runInBand
