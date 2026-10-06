@@ -24,10 +24,17 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import type { Request, Response } from 'express';
+import type { CookieOptions, Request, Response } from 'express';
 
 type AuthenticatedRequest = Request & {
   user: { id: string };
+};
+
+const REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  path: '/',
 };
 
 @ApiTags('인증')
@@ -49,16 +56,12 @@ export class AuthController {
   ): Promise<LoginResponseDto> {
     const { accessToken, refreshToken } =
       await this.authService.login(loginDto);
-    response.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/api/auth/refresh',
-    });
+    response.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
 
     return { accessToken };
   }
 
+  @ApiOperation({ summary: 'Access Token 재발급' })
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
@@ -83,5 +86,14 @@ export class AuthController {
   @Get('login')
   getLoginInfo(@Req() request: AuthenticatedRequest) {
     return this.authService.getLoginInfo(request.user.id);
+  }
+
+  @Public()
+  @ApiOperation({ summary: '로그아웃' })
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  logout(@Res() response: Response) {
+    response.clearCookie('refreshToken', REFRESH_TOKEN_COOKIE_OPTIONS);
+    response.send('ok');
   }
 }
