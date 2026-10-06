@@ -68,8 +68,8 @@ describe('AuthController', () => {
         {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/api/auth/refresh',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          path: '/',
         },
       );
       expect(result).toEqual({ accessToken });
@@ -118,6 +118,25 @@ describe('AuthController', () => {
       expect(serviceMock.getLoginInfo).toHaveBeenCalledTimes(1);
       expect(serviceMock.getLoginInfo).toHaveBeenCalledWith(requestUserId);
       expect(result).toBe(foundLoginInfo);
+    });
+  });
+
+  describe('logout', () => {
+    it('해당 로그인 유저의 refresh token 쿠키를 제거하고 ok를 반환한다.', () => {
+      const response = {
+        clearCookie: jest.fn(),
+        send: jest.fn(),
+      };
+
+      controller.logout(response as unknown as Response);
+
+      expect(response.clearCookie).toHaveBeenCalledWith('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
+      expect(response.send).toHaveBeenCalledWith('ok');
     });
   });
 });
