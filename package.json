@@ -1,8 +1,11 @@
 {
   "name": "project-manage-be",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "engines": {
+    "node": ">=22.22.2 <23.0.0"
+  },
+  "description": "Project management service",
+  "author": "정찬미 <bbbbh66@gmail.com>",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -33,6 +36,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.7",
     "@nestjs/typeorm": "^11.0.3",
+    "@supabase/supabase-js": "^2.117.3",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
