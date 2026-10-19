@@ -9,8 +9,8 @@ import { ProjectMember } from '../project-member/entities/project-member.entity'
 import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
 import {
   DailyCompletedCounts,
-  PageDto,
   ProjectDto,
+  ProjectSearchQueryDto,
   ProjectSimpleDto,
 } from './dto/project.dto';
 import { Task } from '../task/entities/task.entity';
@@ -55,15 +55,32 @@ export class ProjectService {
     });
   }
 
-  async findAll(params: PageDto) {
+  async getProjects(params: ProjectSearchQueryDto, userId: string) {
     const page = params.page ?? 1;
     const limit = params.limit ?? 100;
     const offset = (page - 1) * limit;
 
-    const [items, totalCount] = await this.repository.findAndCount({
-      skip: offset,
-      take: limit,
-    });
+    const qb = this.repository.createQueryBuilder('p');
+
+    if (params.name) {
+      qb.where('p.name ILIKE :name', { name: `%${params.name}%` });
+    }
+
+    if (params.status) {
+      qb.andWhere('p.status = :status', { status: params.status });
+    }
+
+    if (params.isMyProject) {
+      qb.andWhere('p.createdById = :userId', { userId });
+    }
+
+    qb.orderBy('p.createdAt', 'ASC');
+    qb.addOrderBy('p.id', 'ASC');
+
+    const [items, totalCount] = await qb
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
 
     const data: ProjectSimpleDto[] = items.map((v) => {
       return {

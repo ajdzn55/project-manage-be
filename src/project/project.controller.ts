@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ClassSerializerInterceptor,
   Controller,
@@ -16,13 +17,18 @@ import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import {
+  ApiBadRequestResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { PageDto, ProjectDto, ProjectResponseDto } from './dto/project.dto';
+import {
+  ProjectDto,
+  ProjectResponseDto,
+  ProjectSearchQueryDto,
+} from './dto/project.dto';
 import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -49,13 +55,24 @@ export class ProjectController {
     type: ProjectResponseDto,
     description: '성공',
   })
+  @ApiBadRequestResponse({
+    description: '조회 조건 중 하나는 반드시 입력해야 합니다.',
+  })
   @SerializeOptions({
     type: ProjectResponseDto,
     excludeExtraneousValues: true,
   })
   @Get()
-  findAll(@Query() query: PageDto) {
-    return this.projectService.findAll(query);
+  findAll(@Query() query: ProjectSearchQueryDto, @GetUser() user: UserFromJwt) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { page, limit, ...resQuery } = query;
+    if (Object.values(resQuery).every((v) => v === undefined)) {
+      throw new BadRequestException(
+        '조회 조건 중 하나는 반드시 입력해야 합니다.',
+      );
+    }
+
+    return this.projectService.getProjects(query, user.id);
   }
 
   @ApiOperation({ summary: '프로젝트 상세 조회' })

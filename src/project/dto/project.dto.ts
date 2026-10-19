@@ -11,8 +11,9 @@ import {
   IsUUID,
 } from 'class-validator';
 import { getEnumDescriptionString } from '../../common/utils';
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { ProjectMemberDto } from '../../project-member/dto/project-member.dto';
+import { IsBooleanQuery } from '../../common/decorators/is-boolean-query.decorator';
 
 export class DailyCompletedCounts {
   /**
@@ -170,6 +171,51 @@ export class ProjectSimpleDto extends OmitType(ProjectDto, [
 ]) {}
 
 export class PageDto {
+  /**
+   * 페이지
+   */
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  /**
+   * 페이지 당 조회 수
+   */
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 100;
+}
+
+export class ProjectSearchQueryDto {
+  /**
+   * 프로젝트명
+   */
+  @Expose()
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  /**
+   * 프로젝트 상태
+   */
+  @Expose()
+  @IsEnum(ProjectStatus)
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: ProjectStatus,
+    description: `상태 [${getEnumDescriptionString(projectStatusDesc)}]`,
+    default: ProjectStatus.Planned,
+  })
+  status?: ProjectStatus;
+
+  /**
+   * 내가 생성한 프로젝트만 조회 여부
+   */
+  @Expose()
+  @IsOptional()
+  @IsBooleanQuery()
+  isMyProject?: boolean;
+
   /**
    * 페이지
    */
