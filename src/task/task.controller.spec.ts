@@ -55,7 +55,10 @@ describe('TaskController', () => {
   it('검색 조건과 인증된 사용자 id를 전달하고 작업 목록을 반환한다.', async () => {
     const query = { projectId: 'project-id' } as TaskSearchQueryDto;
     const authenticatedUser = { id: 'test' };
-    const foundTasks = [{ id: 'task-id', name: '테스트 작업' }];
+    const foundTasks = {
+      totalCount: 1,
+      data: [{ id: 'task-id', name: '테스트 작업' }],
+    };
     serviceMock.getTasks.mockResolvedValue(foundTasks);
 
     const result = await controller.getTasks(query, authenticatedUser);
@@ -68,7 +71,7 @@ describe('TaskController', () => {
   });
 
   it('검색 조건이 없으면 BadRequestException을 던진다.', () => {
-    const query = {} as TaskSearchQueryDto;
+    const query = { page: 1, limit: 100 } as TaskSearchQueryDto;
     const authenticatedUser = { id: 'test' };
 
     expect(() => controller.getTasks(query, authenticatedUser)).toThrow(

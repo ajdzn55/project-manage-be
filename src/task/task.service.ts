@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from '../project/entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { MemberRole, TaskPriority, TaskStatus } from '../common/enums';
-import { TaskSearchQueryDto } from './dto/task.dto';
+import { TaskResponseDto, TaskSearchQueryDto } from './dto/task.dto';
 import { ProjectMember } from '../project-member/entities/project-member.entity';
 
 @Injectable()
@@ -70,7 +70,13 @@ export class TaskService {
     });
   }
 
-  getTasks(params: TaskSearchQueryDto, userId: string) {
+  async getTasks(
+    params: TaskSearchQueryDto,
+    userId: string,
+  ): Promise<TaskResponseDto> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 100;
+
     const qb = this.repository.createQueryBuilder('t');
 
     if (params.isMyTask) {
@@ -98,9 +104,18 @@ export class TaskService {
         { endDate },
       );
     }
-    qb.orderBy('t.dueDate', 'ASC');
+    qb.orderBy('t.dueDate', 'ASC').addOrderBy('t.id', 'ASC');
 
-    return qb.getMany();
+    const offset = (page - 1) * limit;
+    const [items, totalCount] = await qb
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      totalCount,
+      data: items,
+    };
   }
 
   async update(id: string, updateTaskDto: UpdateTaskDto) {

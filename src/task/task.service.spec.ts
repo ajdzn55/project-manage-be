@@ -120,42 +120,89 @@ describe('TaskService', () => {
     });
   });
 
-  it('검색 조건을 QueryBuilder에 적용하고 작업 목록을 반환한다.', async () => {
-    const query = {
-      isMyTask: true,
-      projectId: 'project-id',
-      month: '2026-12',
-    } as TaskSearchQueryDto;
-    const requestUserId = 'test';
-    const foundTasks = [{ id: 'task-id' }] as Task[];
-    const queryBuilder = {
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      getMany: jest.fn().mockResolvedValue(foundTasks),
-    };
-    taskRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+  describe('search', () => {
+    it('검색 조건을 QueryBuilder에 적용하고 작업 목록을 반환한다.', async () => {
+      const query = {
+        isMyTask: true,
+        projectId: 'project-id',
+        month: '2026-12',
+      } as TaskSearchQueryDto;
+      const requestUserId = 'test';
+      const foundTasks = [{ id: 'task-id' }] as Task[];
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([foundTasks, 1]),
+      };
+      taskRepository.createQueryBuilder.mockReturnValue(queryBuilder);
 
-    const result = await service.getTasks(query, requestUserId);
+      const result = await service.getTasks(query, requestUserId);
 
-    expect(queryBuilder.where).toHaveBeenCalledWith(
-      't.assignee_id = :assigneeId',
-      { assigneeId: requestUserId },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      't.project = :projectId',
-      { projectId: query.projectId },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      't.due_date >= :startDate',
-      { startDate: '2026-12-01' },
-    );
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-      't.due_date < :endDate',
-      { endDate: '2027-01-01' },
-    );
-    expect(queryBuilder.orderBy).toHaveBeenCalledWith('t.dueDate', 'ASC');
-    expect(result).toBe(foundTasks);
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        't.assignee_id = :assigneeId',
+        { assigneeId: requestUserId },
+      );
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        't.project = :projectId',
+        { projectId: query.projectId },
+      );
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        't.due_date >= :startDate',
+        { startDate: '2026-12-01' },
+      );
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        't.due_date < :endDate',
+        { endDate: '2027-01-01' },
+      );
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('t.dueDate', 'ASC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('t.id', 'ASC');
+
+      expect(queryBuilder.skip).toHaveBeenCalledWith(0);
+      expect(queryBuilder.take).toHaveBeenCalledWith(100);
+      expect(queryBuilder.getManyAndCount).toHaveBeenCalledWith();
+
+      expect(result).toEqual({ totalCount: 1, data: foundTasks });
+    });
+
+    it('페이지와 조회 수를 기준으로 offset을 계산하여 작업 목록을 반환한다.', async () => {
+      const query = {
+        projectId: 'project-id',
+        page: 2,
+        limit: 10,
+      } as TaskSearchQueryDto;
+
+      const requestUserId = 'test';
+      const foundTasks = [{ id: 'task-id' }] as Task[];
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([foundTasks, 11]),
+      };
+      taskRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+
+      const result = await service.getTasks(query, requestUserId);
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        't.project = :projectId',
+        { projectId: query.projectId },
+      );
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('t.dueDate', 'ASC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('t.id', 'ASC');
+
+      expect(queryBuilder.skip).toHaveBeenCalledWith(10);
+      expect(queryBuilder.take).toHaveBeenCalledWith(10);
+      expect(queryBuilder.getManyAndCount).toHaveBeenCalledWith();
+
+      expect(result).toEqual({ totalCount: 11, data: foundTasks });
+    });
   });
 
   describe('update', () => {
