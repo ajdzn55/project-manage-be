@@ -3,18 +3,20 @@ import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { ProjectSearchQueryDto } from './dto/project.dto';
+import { BadRequestException } from '@nestjs/common';
 
 describe('ProjectController', () => {
   let controller: ProjectController;
   let serviceMock: Record<
-    'create' | 'findAll' | 'findOne' | 'update' | 'remove',
+    'create' | 'getProjects' | 'findOne' | 'update' | 'remove',
     jest.Mock
   >;
 
   beforeEach(async () => {
     serviceMock = {
       create: jest.fn(),
-      findAll: jest.fn(),
+      getProjects: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
@@ -48,12 +50,24 @@ describe('ProjectController', () => {
   });
 
   it('프로젝트 목록을 반환한다.', async () => {
-    const foundProjects = [{ id: 'project-id', name: '테스트 프로젝트' }];
-    serviceMock.findAll.mockResolvedValue(foundProjects);
+    const query = {
+      name: '테스트',
+      page: 1,
+      limit: 100,
+    } as ProjectSearchQueryDto;
+    const authenticatedUser = { id: 'test' };
+    const foundProjects = {
+      totalCount: 1,
+      data: [{ id: 'project-id', name: '테스트 프로젝트' }],
+    };
+    serviceMock.getProjects.mockResolvedValue(foundProjects);
 
-    const result = await controller.findAll();
+    const result = await controller.findAll(query, authenticatedUser);
 
-    expect(serviceMock.findAll).toHaveBeenCalledTimes(1);
+    expect(serviceMock.getProjects).toHaveBeenCalledWith(
+      query,
+      authenticatedUser.id,
+    );
     expect(result).toBe(foundProjects);
   });
 
@@ -66,6 +80,16 @@ describe('ProjectController', () => {
 
     expect(serviceMock.findOne).toHaveBeenCalledWith(requestProjectId);
     expect(result).toBe(foundProject);
+  });
+
+  it('검색 조건이 없으면 BadRequestException을 던진다.', () => {
+    const query = { page: 1, limit: 100 } as ProjectSearchQueryDto;
+    const authenticatedUser = { id: 'test' };
+
+    expect(() => controller.findAll(query, authenticatedUser)).toThrow(
+      BadRequestException,
+    );
+    expect(serviceMock.getProjects).not.toHaveBeenCalled();
   });
 
   it('프로젝트 id와 수정 정보를 전달한다.', async () => {

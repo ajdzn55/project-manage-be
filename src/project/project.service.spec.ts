@@ -8,22 +8,24 @@ import { Task } from '../task/entities/task.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
+import { ProjectSearchQueryDto } from './dto/project.dto';
 
 describe('ProjectService', () => {
   let service: ProjectService;
   let projectRepository: Record<
-    'find' | 'findOne' | 'update' | 'delete',
+    'findAndCount' | 'findOne' | 'update' | 'delete',
     jest.Mock
-  >;
+  > & { createQueryBuilder: jest.Mock };
   let taskRepository: { createQueryBuilder: jest.Mock };
   let dataSource: { transaction: jest.Mock };
 
   beforeEach(async () => {
     projectRepository = {
-      find: jest.fn(),
+      findAndCount: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
     taskRepository = { createQueryBuilder: jest.fn() };
     dataSource = { transaction: jest.fn() };
@@ -104,14 +106,88 @@ describe('ProjectService', () => {
     });
   });
 
-  it('프로젝트 목록을 반환한다.', async () => {
-    const foundProjects = [{ id: 'project-id' }] as Project[];
-    projectRepository.find.mockResolvedValue(foundProjects);
+  describe('search', () => {
+    it('검색 조건을 QueryBuilder에 적용하고 프로젝트 목록을 반환한다.', async () => {
+      const query = {
+        name: '프로젝트',
+        status: ProjectStatus.Planned,
+        isMyProject: true,
+      } as ProjectSearchQueryDto;
+      const requestUserId = 'test';
+      const foundProjects = [{ id: 'project-id' }] as Project[];
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([foundProjects, 1]),
+      };
+      projectRepository.createQueryBuilder.mockReturnValue(queryBuilder);
 
-    const result = await service.findAll();
+      const result = await service.getProjects(query, requestUserId);
 
-    expect(projectRepository.find).toHaveBeenCalledTimes(1);
-    expect(result).toBe(foundProjects);
+      expect(queryBuilder.where).toHaveBeenCalledWith('p.name ILIKE :name', {
+        name: `%${query.name}%`,
+      });
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith('p.status = :status', {
+        status: query.status,
+      });
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        'p.createdBy = :userId',
+        { userId: requestUserId },
+      );
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.createdAt', 'ASC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('p.id', 'ASC');
+
+      expect(queryBuilder.skip).toHaveBeenCalledWith(0);
+      expect(queryBuilder.take).toHaveBeenCalledWith(100);
+      expect(queryBuilder.getManyAndCount).toHaveBeenCalledWith();
+
+      expect(result).toEqual({
+        totalCount: 1,
+        data: foundProjects,
+      });
+    });
+
+    it('페이지와 조회 수를 기준으로 offset을 계산하여 프로젝트 목록을 반환한다.', async () => {
+      const query = {
+        name: '프로젝트',
+        page: 2,
+        limit: 10,
+      } as ProjectSearchQueryDto;
+      const requestUserId = 'test';
+      const foundProjects = [{ id: 'project-id' }] as Project[];
+
+      const queryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([foundProjects, 11]),
+      };
+      projectRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+
+      const result = await service.getProjects(query, requestUserId);
+
+      expect(queryBuilder.where).toHaveBeenCalledWith('p.name ILIKE :name', {
+        name: `%${query.name}%`,
+      });
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.createdAt', 'ASC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('p.id', 'ASC');
+
+      expect(queryBuilder.skip).toHaveBeenCalledWith(10);
+      expect(queryBuilder.take).toHaveBeenCalledWith(10);
+      expect(queryBuilder.getManyAndCount).toHaveBeenCalledWith();
+
+      expect(result).toEqual({
+        totalCount: 11,
+        data: foundProjects,
+      });
+    });
   });
 
   describe('findOne', () => {
