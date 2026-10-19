@@ -13,7 +13,7 @@ import {
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskResponseDto, TaskSearchQueryDto } from './dto/task.dto';
+import { TaskDto, TaskSearchQueryDto } from './dto/task.dto';
 import {
   ApiBadRequestResponse,
   ApiCreatedResponse,
@@ -42,7 +42,7 @@ export class TaskController {
   }
 
   @ApiOperation({ summary: '작업 목록 조회' })
-  @ApiOkResponse({ type: TaskResponseDto, description: '성공' })
+  @ApiOkResponse({ type: TaskDto, isArray: true, description: '성공' })
   @ApiBadRequestResponse({
     description: '조회 조건 중 하나는 반드시 입력해야 합니다.',
   })
@@ -50,10 +50,8 @@ export class TaskController {
   getTasks(
     @Query() query: TaskSearchQueryDto,
     @GetUser() user: UserFromJwt,
-  ): Promise<TaskResponseDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { page, limit, ...resQuery } = query;
-    if (Object.values(resQuery).every((v) => v === undefined)) {
+  ): Promise<TaskDto[]> {
+    if (Object.values(query).every((v) => v === undefined)) {
       throw new BadRequestException(
         '조회 조건 중 하나는 반드시 입력해야 합니다.',
       );

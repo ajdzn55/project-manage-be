@@ -18,7 +18,6 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { getEnumDescriptionString } from '../../common/utils';
 import { IsBooleanQuery } from '../../common/decorators/is-boolean-query.decorator';
-import { PageDto } from '../../project/dto/project.dto';
 
 export class TaskDto {
   /**
@@ -113,7 +112,7 @@ export class TaskDto {
   completedAt?: Date | null;
 }
 
-export class TaskSearchQueryDto extends PageDto {
+export class TaskSearchQueryDto {
   /**
    * 프로젝트 ID
    */
@@ -141,18 +140,4 @@ export class TaskSearchQueryDto extends PageDto {
   @IsOptional()
   @IsBooleanQuery()
   isMyTask?: boolean;
-}
-
-export class TaskResponseDto {
-  /**
-   * 총 조회 건수
-   */
-  @Expose()
-  totalCount: number;
-
-  /**
-   * 작업 데이터
-   */
-  @Expose()
-  data: TaskDto[];
 }
