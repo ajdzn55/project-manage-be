@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   SerializeOptions,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ProjectDto, ProjectSimpleDto } from './dto/project.dto';
+import { PageDto, ProjectDto, ProjectResponseDto } from './dto/project.dto';
 import { GetUser, type UserFromJwt } from '../common/decorators/user.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -45,17 +46,16 @@ export class ProjectController {
 
   @ApiOperation({ summary: '프로젝트 목록 조회' })
   @ApiOkResponse({
-    type: ProjectSimpleDto,
-    isArray: true,
+    type: ProjectResponseDto,
     description: '성공',
   })
   @SerializeOptions({
-    type: ProjectSimpleDto,
+    type: ProjectResponseDto,
     excludeExtraneousValues: true,
   })
   @Get()
-  findAll() {
-    return this.projectService.findAll();
+  findAll(@Query() query: PageDto) {
+    return this.projectService.findAll(query);
   }
 
   @ApiOperation({ summary: '프로젝트 상세 조회' })

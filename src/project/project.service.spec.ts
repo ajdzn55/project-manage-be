@@ -8,11 +8,12 @@ import { Task } from '../task/entities/task.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
+import { PageDto } from './dto/project.dto';
 
 describe('ProjectService', () => {
   let service: ProjectService;
   let projectRepository: Record<
-    'find' | 'findOne' | 'update' | 'delete',
+    'findAndCount' | 'findOne' | 'update' | 'delete',
     jest.Mock
   >;
   let taskRepository: { createQueryBuilder: jest.Mock };
@@ -20,7 +21,7 @@ describe('ProjectService', () => {
 
   beforeEach(async () => {
     projectRepository = {
-      find: jest.fn(),
+      findAndCount: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -104,14 +105,43 @@ describe('ProjectService', () => {
     });
   });
 
-  it('프로젝트 목록을 반환한다.', async () => {
-    const foundProjects = [{ id: 'project-id' }] as Project[];
-    projectRepository.find.mockResolvedValue(foundProjects);
+  describe('search', () => {
+    it('검색 조건을 적용하여 프로젝트 목록을 반환한다.', async () => {
+      const query = {} as PageDto;
+      const foundProjects = [{ id: 'project-id' }] as Project[];
+      projectRepository.findAndCount.mockResolvedValue([foundProjects, 1]);
 
-    const result = await service.findAll();
+      const result = await service.findAll(query);
 
-    expect(projectRepository.find).toHaveBeenCalledTimes(1);
-    expect(result).toBe(foundProjects);
+      expect(projectRepository.findAndCount).toHaveBeenCalledWith({
+        skip: 0,
+        take: 100,
+      });
+      expect(result).toEqual({
+        totalCount: 1,
+        data: foundProjects,
+      });
+    });
+
+    it('페이지와 조회 수를 기준으로 offset을 계산하여 프로젝트 목록을 반환한다.', async () => {
+      const query = {
+        page: 2,
+        limit: 10,
+      } as PageDto;
+      const foundProjects = [{ id: 'project-id' }] as Project[];
+      projectRepository.findAndCount.mockResolvedValue([foundProjects, 11]);
+
+      const result = await service.findAll(query);
+
+      expect(projectRepository.findAndCount).toHaveBeenCalledWith({
+        skip: 10,
+        take: 10,
+      });
+      expect(result).toEqual({
+        totalCount: 11,
+        data: foundProjects,
+      });
+    });
   });
 
   describe('findOne', () => {

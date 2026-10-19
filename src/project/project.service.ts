@@ -7,7 +7,12 @@ import { Project } from './entities/project.entity';
 import { User } from '../user/entities/user.entity';
 import { ProjectMember } from '../project-member/entities/project-member.entity';
 import { MemberRole, ProjectStatus, TaskStatus } from '../common/enums';
-import { DailyCompletedCounts, ProjectDto } from './dto/project.dto';
+import {
+  DailyCompletedCounts,
+  PageDto,
+  ProjectDto,
+  ProjectSimpleDto,
+} from './dto/project.dto';
 import { Task } from '../task/entities/task.entity';
 import dayjs from 'dayjs';
 
@@ -50,8 +55,31 @@ export class ProjectService {
     });
   }
 
-  findAll(): Promise<Project[]> {
-    return this.repository.find();
+  async findAll(params: PageDto) {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 100;
+    const offset = (page - 1) * limit;
+
+    const [items, totalCount] = await this.repository.findAndCount({
+      skip: offset,
+      take: limit,
+    });
+
+    const data: ProjectSimpleDto[] = items.map((v) => {
+      return {
+        id: v.id,
+        name: v.name,
+        status: v.status,
+        startDate: v.startDate,
+        endDate: v.endDate,
+        createdById: v.createdById,
+      };
+    });
+
+    return {
+      totalCount,
+      data,
+    };
   }
 
   async findOne(id: string): Promise<ProjectDto> {

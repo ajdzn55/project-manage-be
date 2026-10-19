@@ -166,4 +166,35 @@ export class ProjectDto {
 export class ProjectSimpleDto extends OmitType(ProjectDto, [
   'description',
   'members',
+  'taskSummary',
 ]) {}
+
+export class PageDto {
+  /**
+   * 페이지
+   */
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  /**
+   * 페이지 당 조회 수
+   */
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 100;
+}
+
+export class ProjectResponseDto {
+  /**
+   * 총 조회 건수
+   */
+  @Expose()
+  totalCount: number;
+
+  /**
+   * 프로젝트 데이터
+   */
+  @Expose()
+  data: ProjectSimpleDto[];
+}

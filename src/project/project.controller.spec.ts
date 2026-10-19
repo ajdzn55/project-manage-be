@@ -3,6 +3,7 @@ import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { PageDto } from './dto/project.dto';
 
 describe('ProjectController', () => {
   let controller: ProjectController;
@@ -48,12 +49,16 @@ describe('ProjectController', () => {
   });
 
   it('프로젝트 목록을 반환한다.', async () => {
-    const foundProjects = [{ id: 'project-id', name: '테스트 프로젝트' }];
+    const query = { page: 1, limit: 100 } as PageDto;
+    const foundProjects = {
+      totalCount: 1,
+      data: [{ id: 'project-id', name: '테스트 프로젝트' }],
+    };
     serviceMock.findAll.mockResolvedValue(foundProjects);
 
-    const result = await controller.findAll();
+    const result = await controller.findAll(query);
 
-    expect(serviceMock.findAll).toHaveBeenCalledTimes(1);
+    expect(serviceMock.findAll).toHaveBeenCalledWith(query);
     expect(result).toBe(foundProjects);
   });
 
