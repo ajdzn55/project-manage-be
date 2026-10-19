@@ -135,7 +135,7 @@ describe('ProjectService', () => {
         status: query.status,
       });
       expect(queryBuilder.andWhere).toHaveBeenCalledWith(
-        'p.createdById = :userId',
+        'p.createdBy = :userId',
         { userId: requestUserId },
       );
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.createdAt', 'ASC');
