@@ -71,7 +71,7 @@ export class ProjectService {
     }
 
     if (params.isMyProject) {
-      qb.andWhere('p.createdById = :userId', { userId });
+      qb.andWhere('p.createdBy = :userId', { userId });
     }
 
     qb.orderBy('p.createdAt', 'ASC');
