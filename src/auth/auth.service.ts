@@ -67,7 +67,7 @@ export class AuthService {
         { sub: payload?.sub },
         {
           secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-          expiresIn: '15m',
+          expiresIn: '1h',
         },
       );
     } catch {

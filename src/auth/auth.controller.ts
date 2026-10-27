@@ -11,14 +11,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {
-  LoginInfoDto,
-  LoginRequestDto,
-  LoginResponseDto,
-} from './dto/login.dto';
+import { LoginInfoDto, LoginRequestDto } from './dto/login.dto';
 import { Public } from '../common/decorators/public.decorator';
 import {
-  ApiCreatedResponse,
+  ApiCookieAuth,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -30,7 +27,7 @@ type AuthenticatedRequest = Request & {
   user: { id: string };
 };
 
-const REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
+const TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
@@ -43,29 +40,31 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({ summary: '로그인', security: [] })
-  @ApiCreatedResponse({
-    type: () => LoginResponseDto,
-    description: '성공',
-  })
+  @ApiNoContentResponse({ description: '성공' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiUnauthorizedResponse({ description: '로그인 정보가 잘못되었습니다.' })
   @Public()
   @Post('login')
   async login(
     @Body() loginDto: LoginRequestDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<LoginResponseDto> {
+  ): Promise<void> {
     const { accessToken, refreshToken } =
       await this.authService.login(loginDto);
-    response.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_OPTIONS);
 
-    return { accessToken };
+    response.cookie('accessToken', accessToken, TOKEN_COOKIE_OPTIONS);
+    response.cookie('refreshToken', refreshToken, TOKEN_COOKIE_OPTIONS);
   }
 
+  @ApiCookieAuth('refreshTokenAuth')
   @ApiOperation({ summary: 'Access Token 재발급' })
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('refresh')
-  refresh(@Req() request: Request) {
+  refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const prevRefreshToken: unknown = request.cookies?.['refreshToken'];
 
     if (typeof prevRefreshToken !== 'string' || !prevRefreshToken) {
@@ -73,8 +72,7 @@ export class AuthController {
     }
 
     const accessToken = this.authService.refreshTokens(prevRefreshToken);
-
-    return { accessToken };
+    response.cookie('accessToken', accessToken, TOKEN_COOKIE_OPTIONS);
   }
 
   @ApiOperation({ summary: '로그인 정보 조회' })
@@ -93,7 +91,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('logout')
   logout(@Res() response: Response) {
-    response.clearCookie('refreshToken', REFRESH_TOKEN_COOKIE_OPTIONS);
+    response.clearCookie('accessToken', TOKEN_COOKIE_OPTIONS);
+    response.clearCookie('refreshToken', TOKEN_COOKIE_OPTIONS);
     response.send('ok');
   }
 }

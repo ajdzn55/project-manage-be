@@ -13,8 +13,10 @@ async function bootstrap() {
     .setTitle('Project Manage Service API')
     .setDescription('프로젝트 관리 서비스 REST API 문서')
     .setVersion('1.0')
-    .addBearerAuth()
-    .addSecurityRequirements('bearer')
+    .addCookieAuth('accessToken', undefined, 'accessTokenAuth')
+    // 인자: 실제 쿠키 이름, { type: 'apiKey', in: 'cookie' }, Swagger 보안 스키마 이름
+    .addCookieAuth('refreshToken', undefined, 'refreshTokenAuth')
+    .addSecurityRequirements('accessTokenAuth')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

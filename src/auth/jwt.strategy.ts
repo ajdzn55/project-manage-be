@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 
 export interface JwtPayload {
   sub: string;
@@ -9,12 +10,18 @@ export interface JwtPayload {
   exp: number;
 }
 
+const accessTokenCookieExtractor = (request: Request) => {
+  const accessToken: unknown = request.cookies?.['accessToken'];
+
+  return accessToken && typeof accessToken === 'string' ? accessToken : null;
+};
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     super({
-      // 토큰 위치 (Authorization: Bearer <jwt_token> 헤더에서 토큰 추출)
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // 쿠키에서 토큰 꺼내도록
+      jwtFromRequest: accessTokenCookieExtractor,
       // 만료된 토큰 거부 여부
       ignoreExpiration: false,
       // 서명을 확인할 비밀 KEY

@@ -204,7 +204,7 @@ describe('AuthService', () => {
       });
       expect(jwtService.sign).toHaveBeenCalledWith(payload, {
         secret: accessSecret,
-        expiresIn: '15m',
+        expiresIn: '1h',
       });
       expect(result).toBe(newAccessToken);
     });
