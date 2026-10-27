@@ -42,7 +42,7 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
-    it('로그인 결과의 refresh token을 쿠키에 저장하고 access token을 반환한다.', async () => {
+    it('로그인 결과의 access token과 refresh token을 쿠키에 저장한다.', async () => {
       const loginDto: LoginRequestDto = {
         id: 'test',
         password: 'test',
@@ -55,13 +55,17 @@ describe('AuthController', () => {
 
       const response = { cookie: jest.fn() };
 
-      const result = await controller.login(
-        loginDto,
-        response as unknown as Response,
-      );
+      await controller.login(loginDto, response as unknown as Response);
 
       expect(serviceMock.login).toHaveBeenCalledTimes(1);
       expect(serviceMock.login).toHaveBeenCalledWith(loginDto);
+
+      expect(response.cookie).toHaveBeenCalledWith('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
       expect(response.cookie).toHaveBeenCalledWith(
         'refreshToken',
         refreshToken,
@@ -72,12 +76,11 @@ describe('AuthController', () => {
           path: '/',
         },
       );
-      expect(result).toEqual({ accessToken });
     });
   });
 
   describe('refresh', () => {
-    it('쿠키의 refresh token으로 access token을 재발급한다.', () => {
+    it('refresh token 쿠키를 읽고 access token을 재발급하여 쿠키로 저장한다.', () => {
       const refreshToken = 'refresh-token';
       const newAccessToken = 'new-access-token';
 
@@ -87,17 +90,32 @@ describe('AuthController', () => {
 
       serviceMock.refreshTokens.mockReturnValue(newAccessToken);
 
-      const result = controller.refresh(request);
+      const response = { cookie: jest.fn() };
+
+      controller.refresh(request, response as unknown as Response);
 
       expect(serviceMock.refreshTokens).toHaveBeenCalledTimes(1);
       expect(serviceMock.refreshTokens).toHaveBeenCalledWith(refreshToken);
-      expect(result).toEqual({ accessToken: newAccessToken });
+
+      expect(response.cookie).toHaveBeenCalledWith(
+        'accessToken',
+        newAccessToken,
+        {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          path: '/',
+        },
+      );
     });
 
     it('refresh token 쿠키가 없으면 UnauthorizedException을 던진다.', () => {
       const request = { cookies: {} } as unknown as Request;
+      const response = { cookie: jest.fn() };
 
-      expect(() => controller.refresh(request)).toThrow(UnauthorizedException);
+      expect(() =>
+        controller.refresh(request, response as unknown as Response),
+      ).toThrow(UnauthorizedException);
       expect(serviceMock.refreshTokens).not.toHaveBeenCalled();
     });
   });
@@ -122,7 +140,7 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('해당 로그인 유저의 refresh token 쿠키를 제거하고 ok를 반환한다.', () => {
+    it('해당 로그인 유저의 access token, refresh token 쿠키를 제거하고 ok를 반환한다.', () => {
       const response = {
         clearCookie: jest.fn(),
         send: jest.fn(),
@@ -130,6 +148,12 @@ describe('AuthController', () => {
 
       controller.logout(response as unknown as Response);
 
+      expect(response.clearCookie).toHaveBeenCalledWith('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
       expect(response.clearCookie).toHaveBeenCalledWith('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

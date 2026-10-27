@@ -22,10 +22,3 @@ export class LoginInfoDto extends UserDto {
   @IsNotEmpty()
   createdAt: Date;
 }
-
-export class LoginResponseDto {
-  @Expose()
-  @IsString()
-  @IsNotEmpty()
-  accessToken: string;
-}
