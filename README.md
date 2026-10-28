@@ -1,4 +1,4 @@
-## ProjectHub Backend
+# ProjectHub Backend
 
 ### 📌 프로젝트 소개
 
@@ -8,11 +8,13 @@ ProjectHub는 프로젝트, 작업, 구성원을 한곳에서 관리하는 협�
 
 ### ✨ 주요 기능
 
-- JWT 기반 회원가입·로그인 및 토큰 재발급
-- 사용자 정보 관리
-- 프로젝트 생성·조회·수정·삭제
+- HttpOnly 쿠키 기반 JWT 회원가입·로그인·로그아웃 및 토큰 재발급
+- 사용자 정보 및 마감 임박 작업 알림 확인 시각 관리
+- 프로젝트 생성·조회·수정·삭제와 이름·상태·생성자 기반 검색
 - 프로젝트 구성원 및 역할 관리
-- 작업 생성·조회·수정·삭제
+- 프로젝트별 작업 진행률, 상태별 작업 건수 및 일별 완료 건수 집계
+- 작업 생성·조회·수정·삭제와 프로젝트·담당자·마감 월 기반 조회
+- 작업 담당자 지정 시 프로젝트 구성원 자동 등록
 
 ### 🛠 기술 스택
 
@@ -27,7 +29,7 @@ ProjectHub는 프로젝트, 작업, 구성원을 한곳에서 관리하는 협�
 
 #### 사전 요구사항
 
-- Node.js 20 이상
+- Node.js 22.23.4 이상, 23 미만
 - npm
 - PostgreSQL
 
@@ -52,6 +54,8 @@ DB_PORT=5432
 DB_USER=
 DB_PASSWORD=
 DB_NAME=
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
 ```
 
 #### 데이터베이스 및 서버 실행
@@ -96,13 +100,16 @@ Render 운영 환경 배포
 #### Health Check
 
 UptimeRobot이 [백엔드 API 엔드포인트](https://project-manage-be.onrender.com/api)를 주기적으로 호출합니다.
-Health Check는 `SELECT 1` 쿼리를 통해 백엔드와 데이터베이스의 연결 상태를 확인합니다.
 
-### 테스트
+Health Check는 TypeORM을 통한 PostgreSQL `SELECT 1` 쿼리와 Supabase API의 `health_check` RPC를 모두 호출해 데이터베이스 직접 연결과 API 경로를 확인합니다. 하나라도 실패하면 `503 Service Unavailable`을 반환합니다.
+
+### 🧪 테스트 및 검증
 
 ```bash
 npm test
 ```
+
+CI에서는 ESLint, Jest 단위 테스트, 프로덕션 빌드를 순서대로 실행하며, 모든 검사가 성공한 경우에만 운영 배포를 요청합니다.
 
 ### 📁 폴더 구조
 
