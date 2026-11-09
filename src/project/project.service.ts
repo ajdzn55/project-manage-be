@@ -75,7 +75,6 @@ export class ProjectService {
     }
 
     qb.orderBy('p.createdAt', 'ASC');
-    qb.addOrderBy('p.id', 'ASC');
 
     const [items, totalCount] = await qb
       .skip(offset)

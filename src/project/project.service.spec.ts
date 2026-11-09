@@ -119,7 +119,6 @@ describe('ProjectService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        addOrderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([foundProjects, 1]),
@@ -139,7 +138,6 @@ describe('ProjectService', () => {
         { userId: requestUserId },
       );
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.createdAt', 'ASC');
-      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('p.id', 'ASC');
 
       expect(queryBuilder.skip).toHaveBeenCalledWith(0);
       expect(queryBuilder.take).toHaveBeenCalledWith(100);
@@ -164,7 +162,6 @@ describe('ProjectService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        addOrderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([foundProjects, 11]),
@@ -177,7 +174,6 @@ describe('ProjectService', () => {
         name: `%${query.name}%`,
       });
       expect(queryBuilder.orderBy).toHaveBeenCalledWith('p.createdAt', 'ASC');
-      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('p.id', 'ASC');
 
       expect(queryBuilder.skip).toHaveBeenCalledWith(10);
       expect(queryBuilder.take).toHaveBeenCalledWith(10);
