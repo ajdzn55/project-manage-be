@@ -98,7 +98,7 @@ export class TaskService {
         { endDate },
       );
     }
-    qb.orderBy('t.dueDate', 'ASC');
+    qb.orderBy('t.dueDate', 'ASC').addOrderBy('t.createdAt', 'ASC');
 
     return qb.getMany();
   }

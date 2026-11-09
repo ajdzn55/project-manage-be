@@ -132,6 +132,7 @@ describe('TaskService', () => {
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
       getMany: jest.fn().mockResolvedValue(foundTasks),
     };
     taskRepository.createQueryBuilder.mockReturnValue(queryBuilder);
@@ -155,6 +156,7 @@ describe('TaskService', () => {
       { endDate: '2027-01-01' },
     );
     expect(queryBuilder.orderBy).toHaveBeenCalledWith('t.dueDate', 'ASC');
+    expect(queryBuilder.addOrderBy).toHaveBeenCalledWith('t.createdAt', 'ASC');
     expect(result).toBe(foundTasks);
   });
 
