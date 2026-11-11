@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  // InternalServerErrorException, // PERF_TEST (요청 실패 시 UI와 캐시 롤백)
   Param,
   ParseUUIDPipe,
   Patch,
@@ -60,6 +61,12 @@ export class TaskController {
     return this.taskService.getTasks(query, user.id);
   }
 
+  // PERF_TEST (성공 요청에서 즉시 UI 반영)
+  // 응답 지연을 위한 헬퍼 함수
+  // private sleep(ms: number) {
+  //   return new Promise((resolve) => setTimeout(resolve, ms));
+  // }
+
   @ApiOperation({ summary: '프로젝트 작업 정보 수정' })
   @ApiOkResponse({ description: '성공' })
   @Patch(':id')
@@ -67,6 +74,12 @@ export class TaskController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTaskDto: UpdateTaskDto,
   ): Promise<void> {
+    // PERF_TEST (성공 요청에서 즉시 UI 반영)
+    // await this.sleep(1000); // 1초(1000ms) 대기
+
+    // PERF_TEST (요청 실패 시 UI와 캐시 롤백)
+    // throw new InternalServerErrorException('롤백 테스트');
+
     return this.taskService.update(id, updateTaskDto);
   }
 
